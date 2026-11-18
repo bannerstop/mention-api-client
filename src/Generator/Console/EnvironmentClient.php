@@ -65,18 +65,22 @@ final class EnvironmentClient
      */
     private static function httpStack(): array
     {
-        if (class_exists('GuzzleHttp\Client') && class_exists('GuzzleHttp\Psr7\HttpFactory')) {
-            /** @var ClientInterface $http */
-            $http = new \GuzzleHttp\Client(['timeout' => MentionApiConfig::DEFAULT_TIMEOUT, 'connect_timeout' => 10]);
-            $factory = new \GuzzleHttp\Psr7\HttpFactory();
-
-            return [$http, $factory, $factory];
+        // The classes are looked up by name: neither package is a dependency of this one.
+        $guzzle = 'GuzzleHttp\\Client';
+        $guzzleFactory = 'GuzzleHttp\\Psr7\\HttpFactory';
+        if (class_exists($guzzle) && class_exists($guzzleFactory)) {
+            $http = new $guzzle(['timeout' => MentionApiConfig::DEFAULT_TIMEOUT, 'connect_timeout' => 10]);
+            $factory = new $guzzleFactory();
+            if ($http instanceof ClientInterface && $factory instanceof RequestFactoryInterface && $factory instanceof StreamFactoryInterface) {
+                return [$http, $factory, $factory];
+            }
         }
-        if (class_exists('Symfony\Component\HttpClient\Psr18Client')) {
-            /** @var \Symfony\Component\HttpClient\Psr18Client $client */
-            $client = new \Symfony\Component\HttpClient\Psr18Client();
-
-            return [$client, $client, $client];
+        $symfony = 'Symfony\\Component\\HttpClient\\Psr18Client';
+        if (class_exists($symfony)) {
+            $client = new $symfony();
+            if ($client instanceof ClientInterface && $client instanceof RequestFactoryInterface && $client instanceof StreamFactoryInterface) {
+                return [$client, $client, $client];
+            }
         }
 
         throw new GeneratorException('No HTTP client found to fetch the document with: install guzzlehttp/guzzle or symfony/http-client and nyholm/psr7, or pass --client with a file that returns your configured client.');
