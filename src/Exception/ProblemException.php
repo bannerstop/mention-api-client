@@ -15,11 +15,13 @@ abstract class ProblemException extends MentionApiException
     private string $detail;
     /** @var array<string, string> */
     private array $errors;
+    private ?int $retryAfter;
 
     /**
-     * @param array<string, string> $errors what is wrong, per Parameter
+     * @param array<string, string> $errors     what is wrong, per Parameter
+     * @param int|null              $retryAfter seconds the server asked to wait before another attempt
      */
-    final public function __construct(int $status, string $problemCode, string $title, string $detail, ?string $requestId = null, array $errors = [])
+    final public function __construct(int $status, string $problemCode, string $title, string $detail, ?string $requestId = null, array $errors = [], ?int $retryAfter = null)
     {
         parent::__construct($title . ': ' . $detail . (null === $requestId ? '' : ' (request ' . $requestId . ')'), $requestId, $status);
         $this->status = $status;
@@ -27,6 +29,7 @@ abstract class ProblemException extends MentionApiException
         $this->title = $title;
         $this->detail = $detail;
         $this->errors = $errors;
+        $this->retryAfter = $retryAfter;
     }
 
     /**
@@ -63,5 +66,13 @@ abstract class ProblemException extends MentionApiException
     public function getErrors(): array
     {
         return $this->errors;
+    }
+
+    /**
+     * Seconds the server asked to wait (header Retry-After), mostly with status 429 and 503.
+     */
+    public function getRetryAfter(): ?int
+    {
+        return $this->retryAfter;
     }
 }

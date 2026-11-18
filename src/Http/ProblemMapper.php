@@ -51,7 +51,7 @@ final class ProblemMapper
     /**
      * @param array<string, mixed> $problem a problem document, see isProblem()
      */
-    public static function exceptionFor(int $status, array $problem, ?string $requestId): E\ProblemException
+    public static function exceptionFor(int $status, array $problem, ?string $requestId, ?int $retryAfter = null): E\ProblemException
     {
         $code = substr((string) $problem['type'], \strlen(self::TYPE_PREFIX));
         $class = self::CLASSES[$code] ?? E\UnknownProblemException::class;
@@ -69,6 +69,7 @@ final class ProblemMapper
             isset($problem['detail']) && \is_string($problem['detail']) ? $problem['detail'] : '',
             $requestId,
             $errors,
+            $retryAfter,
         );
     }
 }

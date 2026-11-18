@@ -5,44 +5,90 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi\Http;
 
 use Bannerstop\MentionApi\Auth\Authenticator;
+use Bannerstop\MentionApi\Exception\MentionApiException;
+use Bannerstop\MentionApi\Exception\TransportException;
 use Bannerstop\MentionApi\Exception\UnexpectedResponseException;
 use Bannerstop\MentionApi\MentionApiConfig;
+use Psr\Clock\ClockInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 /**
- * Sends one call to /v2 and reads the answer.
+ * Sends a call to /v2, retries it when allowed and reads the answer.
  *
  * @internal
  */
 final class Transport
 {
+    public const MAX_RETRIES = 2;
+    public const MAX_RETRY_WAIT = 10;
+
     private MentionApiConfig $config;
     private ClientInterface $http;
     private RequestFactoryInterface $requestFactory;
     private StreamFactoryInterface $streamFactory;
     private Authenticator $authenticator;
+    private ClockInterface $clock;
+    private Sleeper $sleeper;
 
     public function __construct(
         MentionApiConfig $config,
         ClientInterface $http,
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface $streamFactory,
-        Authenticator $authenticator
+        Authenticator $authenticator,
+        ClockInterface $clock,
+        Sleeper $sleeper
     ) {
         $this->config = $config;
         $this->http = $http;
         $this->requestFactory = $requestFactory;
         $this->streamFactory = $streamFactory;
         $this->authenticator = $authenticator;
+        $this->clock = $clock;
+        $this->sleeper = $sleeper;
+    }
+
+    /**
+     * @param array<string, mixed>|null $body
+     * @param bool                      $retry whether a short failure (429, 503, connection error) may be tried again
+     *
+     * @throws MentionApiException
+     */
+    public function send(string $method, string $path, ?array $body = null, bool $retry = false): ApiResponse
+    {
+        for ($retries = 0;; ++$retries) {
+            $retryAfter = null;
+            $retryable = false;
+            try {
+                $response = $this->http->sendRequest($this->request($method, $path, $body));
+                $outcome = $this->read($response);
+                $retryable = \in_array($response->getStatusCode(), [429, 503], true);
+                $retryAfter = $retryable ? $this->retryAfter($response) : null;
+            } catch (NetworkExceptionInterface $e) {
+                $outcome = new TransportException('The call could not be completed: ' . $e->getMessage(), $e);
+                $retryable = true;
+            } catch (ClientExceptionInterface $e) {
+                throw new TransportException('The call could not be sent: ' . $e->getMessage(), $e);
+            }
+            if ($outcome instanceof ApiResponse) {
+                return $outcome;
+            }
+            if (!$retry || !$retryable || $retries >= self::MAX_RETRIES) {
+                throw $outcome;
+            }
+            $this->sleeper->sleep(null === $retryAfter ? (float) ($retries + 1) : (float) min($retryAfter, self::MAX_RETRY_WAIT));
+        }
     }
 
     /**
      * @param array<string, mixed>|null $body
      */
-    public function send(string $method, string $path, ?array $body = null): ApiResponse
+    private function request(string $method, string $path, ?array $body): \Psr\Http\Message\RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $this->config->getBaseUrl() . $path)
             ->withHeader('Authorization', $this->authenticator->getAuthorizationHeader())
@@ -53,23 +99,30 @@ final class Transport
                 ->withBody($this->streamFactory->createStream(json_encode($body, JSON_THROW_ON_ERROR)));
         }
 
-        $response = $this->http->sendRequest($request);
+        return $request;
+    }
+
+    /**
+     * @return ApiResponse|MentionApiException the result, or the exception to throw for it
+     */
+    private function read(ResponseInterface $response)
+    {
         $status = $response->getStatusCode();
         $document = json_decode((string) $response->getBody(), true);
         $requestId = $this->requestId($response, $document);
 
         if ($status >= 200 && $status < 300) {
             if (!\is_array($document)) {
-                throw new UnexpectedResponseException('The answer is not a JSON document.', $status, $requestId);
+                return new UnexpectedResponseException('The answer is not a JSON document.', $status, $requestId);
             }
 
             return new ApiResponse($document, $requestId);
         }
         if (ProblemMapper::isProblem($document)) {
-            throw ProblemMapper::exceptionFor($status, $document, $requestId);
+            return ProblemMapper::exceptionFor($status, $document, $requestId, $this->retryAfter($response));
         }
 
-        throw new UnexpectedResponseException(sprintf('Unexpected answer with status %d.', $status), $status, $requestId);
+        return new UnexpectedResponseException(sprintf('Unexpected answer with status %d.', $status), $status, $requestId);
     }
 
     /**
@@ -84,5 +137,25 @@ final class Transport
         }
 
         return '' === $requestId ? null : $requestId;
+    }
+
+    /**
+     * Retry-After is a number of seconds or an HTTP date.
+     */
+    private function retryAfter(ResponseInterface $response): ?int
+    {
+        $value = trim($response->getHeaderLine('Retry-After'));
+        if ('' === $value) {
+            return null;
+        }
+        if (ctype_digit($value)) {
+            return (int) $value;
+        }
+        $date = date_create_immutable($value);
+        if (false === $date) {
+            return null;
+        }
+
+        return max(0, $date->getTimestamp() - $this->clock->now()->getTimestamp());
     }
 }

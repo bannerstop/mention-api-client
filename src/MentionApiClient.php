@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi;
 
 use Bannerstop\MentionApi\Auth\ApiKeyAuthenticator;
-use Bannerstop\MentionApi\Auth\Authenticator;
 use Bannerstop\MentionApi\Http\NativeSleeper;
 use Bannerstop\MentionApi\Http\Sleeper;
 use Bannerstop\MentionApi\Http\Transport;
@@ -35,7 +34,7 @@ final class MentionApiClient
         ?ClockInterface $clock = null,
         ?Sleeper $sleeper = null
     ) {
-        $this->transport = new Transport($config, $http, $requestFactory, $streamFactory, new ApiKeyAuthenticator($config->getApiKey()));
+        $this->transport = new Transport($config, $http, $requestFactory, $streamFactory, new ApiKeyAuthenticator($config->getApiKey()), $clock ?? new SystemClock(), $sleeper ?? new NativeSleeper());
     }
 
     /**
@@ -54,7 +53,7 @@ final class MentionApiClient
             $body['database'] = $database;
         }
 
-        $response = $this->transport->send('POST', '/v2/queries/' . $name, $body);
+        $response = $this->transport->send('POST', '/v2/queries/' . $name, $body, true);
         $meta = $response->getMeta();
 
         return new QueryResult($response->getData(), $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
