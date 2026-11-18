@@ -86,8 +86,8 @@ final class WrapperGenerator
             $summary = $this->text($query->getSummary());
             $method = "    /**\n" . ('' === $summary ? '' : '     * ' . $summary . "\n     *\n")
                 . '     * @return TypedRows<' . $name . "Row>\n     *\n     * @throws MentionApiException\n     */\n"
-                . '    public function ' . $query->getName() . '(' . $name . 'Parameters $parameters, ?string $database = null): TypedRows' . "\n    {\n"
-                . "        \$result = \$this->client->run('" . $query->getName() . "', \$parameters->toArray(), \$database);\n\n"
+                . '    public function ' . $query->getName() . '(' . $this->parametersArgument($query, $name) . ', ?string $database = null): TypedRows' . "\n    {\n"
+                . "        \$result = \$this->client->run('" . $query->getName() . "', " . $this->parametersValue($query, $name) . ", \$database);\n\n"
                 . '        return new TypedRows($result, array_map([' . $name . "Row::class, 'fromArray'], \$result->getRows()));\n    }\n";
             $methods[] = $method;
         }
@@ -111,8 +111,8 @@ final class WrapperGenerator
             $summary = $this->text($routine->getSummary());
             $methods[] = "    /**\n" . ('' === $summary ? '' : '     * ' . $summary . "\n     *\n")
                 . "     * A Routine writes to Mention and is never retried: after a TransportException or a 5xx problem it may or may not have\n     * run, so check before you run it again.\n     *\n     * @throws MentionApiException\n     */\n"
-                . '    public function ' . $routine->getName() . '(' . $name . 'Parameters $parameters, ?string $database = null): RoutineResult' . "\n    {\n"
-                . "        return \$this->client->runRoutine('" . $routine->getName() . "', \$parameters->toArray(), \$database);\n    }\n";
+                . '    public function ' . $routine->getName() . '(' . $this->parametersArgument($routine, $name) . ', ?string $database = null): RoutineResult' . "\n    {\n"
+                . "        return \$this->client->runRoutine('" . $routine->getName() . "', " . $this->parametersValue($routine, $name) . ", \$database);\n    }\n";
         }
         if ([] !== $routines) {
             $imports[] = 'Bannerstop\\MentionApi\\Exception\\MentionApiException';
@@ -144,6 +144,30 @@ final class WrapperGenerator
         }
 
         return $code . "}\n";
+    }
+
+    /**
+     * Nothing is needed to call an operation without required Parameters, so its Parameters may be left out.
+     */
+    private function parametersArgument(Operation $operation, string $name): string
+    {
+        return $this->needsParameters($operation) ? $name . 'Parameters $parameters' : '?' . $name . 'Parameters $parameters = null';
+    }
+
+    private function parametersValue(Operation $operation, string $name): string
+    {
+        return $this->needsParameters($operation) ? '$parameters->toArray()' : '($parameters ?? new ' . $name . 'Parameters())->toArray()';
+    }
+
+    private function needsParameters(Operation $operation): bool
+    {
+        foreach ($operation->getParameters() as $parameter) {
+            if ($parameter->isRequired()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function parametersClass(string $namespace, string $class, string $kind, Operation $operation, PhpTarget $target): string
