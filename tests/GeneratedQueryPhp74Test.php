@@ -18,7 +18,7 @@ final class GeneratedQueryPhp74Test extends GeneratedQueryTestCase
         $code = new GeneratedCode(GeneratedCode::fixtureDocument(), $this->target());
 
         foreach ($code->files() as $path => $source) {
-            self::assertSame(0, preg_match('/\\breadonly\\b(?! \*\/)|\\bmixed \\$|: mixed\\b|\\bmatch \\(|\\benum \\w|#\\[/', $source), $path . ' uses syntax newer than PHP 7.4');
+            self::assertSame(0, preg_match('/(?<!@)\breadonly\b|(?:public|\(|,) mixed \$|: mixed\b|\bmatch \(|\benum \w|#\[/', $source), $path . ' uses syntax newer than PHP 7.4');
         }
     }
 }
