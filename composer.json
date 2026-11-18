@@ -28,7 +28,7 @@
     },
     "suggest": {
         "guzzlehttp/guzzle": "A PSR-18 HTTP client (^7.0); the configured timeout is applied to it automatically",
-        "symfony/http-client": "An HTTP client for the PSR-18 adapter SymfonyTimeoutClient (^5.4 || ^6.4 || ^7.0), which applies the configured timeout",
+        "symfony/http-client": "An HTTP client, used through SymfonyTimeoutClient (^5.4 || ^6.4 || ^7.0)",
         "bannerstop/mention-api-client-bundle": "Symfony integration",
         "bannerstop/mention-api-client-laravel": "Laravel integration"
     },
