@@ -62,9 +62,88 @@ final class WrapperGenerator
             $files['Query/' . $name . 'Parameters.php'] = $this->parametersClass($namespace . '\\Query', $name . 'Parameters', 'Query', $query, $target);
             $files['Query/' . $name . 'Row.php'] = $this->rowClass($namespace . '\\Query', $name . 'Row', $query, $target);
         }
+        foreach ($catalog->getRoutines() as $routine) {
+            $files['Routine/' . ucfirst($routine->getName()) . 'Parameters.php'] = $this->parametersClass($namespace . '\\Routine', ucfirst($routine->getName()) . 'Parameters', 'Routine', $routine, $target);
+        }
+        $files['Queries.php'] = $this->queriesClass($namespace, $catalog->getQueries(), $target);
+        $files['Routines.php'] = $this->routinesClass($namespace, $catalog->getRoutines(), $target);
         ksort($files, SORT_STRING);
 
         return $files;
+    }
+
+    /**
+     * @param list<Operation> $queries
+     */
+    private function queriesClass(string $namespace, array $queries, PhpTarget $target): string
+    {
+        $imports = ['Bannerstop\\MentionApi\\MentionApiClient', 'Bannerstop\\MentionApi\\Result\\TypedRows'];
+        $methods = [];
+        foreach ($queries as $query) {
+            $name = ucfirst($query->getName());
+            $imports[] = $namespace . '\\Query\\' . $name . 'Parameters';
+            $imports[] = $namespace . '\\Query\\' . $name . 'Row';
+            $summary = $this->text($query->getSummary());
+            $method = "    /**\n" . ('' === $summary ? '' : '     * ' . $summary . "\n     *\n")
+                . '     * @return TypedRows<' . $name . "Row>\n     *\n     * @throws MentionApiException\n     */\n"
+                . '    public function ' . $query->getName() . '(' . $name . 'Parameters $parameters, ?string $database = null): TypedRows' . "\n    {\n"
+                . "        \$result = \$this->client->run('" . $query->getName() . "', \$parameters->toArray(), \$database);\n\n"
+                . '        return new TypedRows($result, array_map([' . $name . "Row::class, 'fromArray'], \$result->getRows()));\n    }\n";
+            $methods[] = $method;
+        }
+        if ([] !== $queries) {
+            $imports[] = 'Bannerstop\\MentionApi\\Exception\\MentionApiException';
+        }
+
+        return $this->clientClass($namespace, 'Queries', 'The Queries your Consumer may call, as typed methods.', $imports, $methods, $target);
+    }
+
+    /**
+     * @param list<Operation> $routines
+     */
+    private function routinesClass(string $namespace, array $routines, PhpTarget $target): string
+    {
+        $imports = ['Bannerstop\\MentionApi\\MentionApiClient'];
+        $methods = [];
+        foreach ($routines as $routine) {
+            $name = ucfirst($routine->getName());
+            $imports[] = $namespace . '\\Routine\\' . $name . 'Parameters';
+            $summary = $this->text($routine->getSummary());
+            $methods[] = "    /**\n" . ('' === $summary ? '' : '     * ' . $summary . "\n     *\n")
+                . "     * A Routine writes to Mention and is never retried: after a TransportException or a 5xx problem it may or may not have\n     * run, so check before you run it again.\n     *\n     * @throws MentionApiException\n     */\n"
+                . '    public function ' . $routine->getName() . '(' . $name . 'Parameters $parameters, ?string $database = null): RoutineResult' . "\n    {\n"
+                . "        return \$this->client->runRoutine('" . $routine->getName() . "', \$parameters->toArray(), \$database);\n    }\n";
+        }
+        if ([] !== $routines) {
+            $imports[] = 'Bannerstop\\MentionApi\\Exception\\MentionApiException';
+            $imports[] = 'Bannerstop\\MentionApi\\Result\\RoutineResult';
+        }
+
+        return $this->clientClass($namespace, 'Routines', 'The Routines your Consumer may call, as typed methods.', $imports, $methods, $target);
+    }
+
+    /**
+     * @param list<string> $imports the classes to import
+     * @param list<string> $methods the code of each method
+     */
+    private function clientClass(string $namespace, string $class, string $summary, array $imports, array $methods, PhpTarget $target): string
+    {
+        sort($imports, SORT_STRING);
+        $code = $this->header($namespace);
+        foreach ($imports as $import) {
+            $code .= 'use ' . $import . ";\n";
+        }
+        $code .= "\n/**\n * " . $summary . "\n */\n";
+        if ($target->usesReadonlyClasses()) {
+            $code .= 'final readonly class ' . $class . "\n{\n    public function __construct(private MentionApiClient \$client)\n    {\n    }\n";
+        } else {
+            $code .= 'final class ' . $class . "\n{\n    /** @var MentionApiClient */\n    private \$client;\n\n    public function __construct(MentionApiClient \$client)\n    {\n        \$this->client = \$client;\n    }\n";
+        }
+        foreach ($methods as $method) {
+            $code .= "\n" . $method;
+        }
+
+        return $code . "}\n";
     }
 
     private function parametersClass(string $namespace, string $class, string $kind, Operation $operation, PhpTarget $target): string
