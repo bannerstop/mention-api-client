@@ -11,8 +11,6 @@ namespace Bannerstop\MentionApi\Generator;
  */
 final class Parameter
 {
-    public const TYPES = ['int', 'string', 'bool', 'date', 'int_list', 'string_list'];
-
     private string $name;
     private string $type;
     private bool $required;
@@ -30,7 +28,7 @@ final class Parameter
     }
 
     /**
-     * One of self::TYPES.
+     * One of int, string, bool, date, int_list, string_list.
      */
     public function getType(): string
     {

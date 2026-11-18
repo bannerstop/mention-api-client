@@ -6,6 +6,8 @@ namespace Bannerstop\MentionApi\Generator;
 
 /**
  * How the files on disk differ from what the generator would write.
+ *
+ * @internal
  */
 final class Drift
 {

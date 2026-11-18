@@ -7,6 +7,8 @@ namespace Bannerstop\MentionApi\Generator;
 /**
  * Turns the OpenAPI document of a Consumer into typed wrapper classes. The output depends on nothing but the
  * document, the namespace and the target: same input, same files, so a plain diff finds drift.
+ *
+ * @internal
  */
 final class WrapperGenerator
 {
@@ -77,7 +79,7 @@ final class WrapperGenerator
      */
     private function queriesClass(string $namespace, array $queries, PhpTarget $target): string
     {
-        $imports = ['Bannerstop\\MentionApi\\MentionApiClient', 'Bannerstop\\MentionApi\\Result\\TypedRows'];
+        $imports = ['Bannerstop\\MentionApi\\MentionApiClient'];
         $methods = [];
         foreach ($queries as $query) {
             $name = ucfirst($query->getName());
@@ -92,6 +94,7 @@ final class WrapperGenerator
             $methods[] = $method;
         }
         if ([] !== $queries) {
+            $imports[] = 'Bannerstop\\MentionApi\\Result\\TypedRows';
             $imports[] = 'Bannerstop\\MentionApi\\Exception\\MentionApiException';
         }
 

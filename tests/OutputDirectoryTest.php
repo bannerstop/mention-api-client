@@ -29,8 +29,8 @@ final class OutputDirectoryTest extends TestCase
 
             return;
         }
-        foreach (glob($path . '/*') ?: [] as $child) {
-            $this->remove($child);
+        foreach (is_dir($path) ? array_diff(scandir($path) ?: [], ['.', '..']) : [] as $child) {
+            $this->remove($path . '/' . $child);
         }
         if (is_dir($path)) {
             rmdir($path);
@@ -114,5 +114,31 @@ final class OutputDirectoryTest extends TestCase
         (new OutputDirectory($this->directory))->drift(['Queries.php' => $this->generated()]);
 
         self::assertDirectoryDoesNotExist($this->directory);
+    }
+
+    public function testWriteRefusesToOverwriteAFileThatIsNotGenerated(): void
+    {
+        $output = new OutputDirectory($this->directory);
+        mkdir($this->directory . '/Query', 0777, true);
+        file_put_contents($this->directory . '/Query/FooRow.php', "<?php // written by hand\n");
+
+        try {
+            $output->write(['Queries.php' => $this->generated(), 'Query/FooRow.php' => $this->generated('row')]);
+            self::fail('Expected an exception.');
+        } catch (\Bannerstop\MentionApi\Generator\GeneratorException $e) {
+            self::assertStringContainsString('Query/FooRow.php', $e->getMessage());
+        }
+        self::assertSame("<?php // written by hand\n", file_get_contents($this->directory . '/Query/FooRow.php'));
+        self::assertFileDoesNotExist($this->directory . '/Queries.php', 'nothing is written when one file is refused');
+    }
+
+    public function testStaleFilesAreFoundInADirectoryWithBracketsInItsPath(): void
+    {
+        $output = new OutputDirectory($this->directory . '/[app]');
+        $output->write(['Query/GoneRow.php' => $this->generated('gone')]);
+
+        $drift = $output->drift([]);
+
+        self::assertSame(['Query/GoneRow.php'], $drift->getStale());
     }
 }

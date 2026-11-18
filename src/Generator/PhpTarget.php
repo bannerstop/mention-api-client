@@ -6,6 +6,8 @@ namespace Bannerstop\MentionApi\Generator;
 
 /**
  * The PHP the generated code is written for: plain classes that run from PHP 7.4, or readonly classes from PHP 8.2.
+ *
+ * @internal
  */
 final class PhpTarget
 {

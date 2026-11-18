@@ -289,8 +289,8 @@ $result = (new Routines($mention))->setWidgetLabel(new SetWidgetLabelParameters(
 $result->getAction();               // the RoutineResult of the generic client
 ```
 
-The constructor of a Parameters class takes the Parameters in the order the
-Query declares them. A Query without required Parameters can be called without
+The constructor of a Parameters class takes the required Parameters in the order
+the Query declares them, then the optional ones. A Query without required Parameters can be called without
 a Parameters object. Every method takes the Mention database as an optional
 second argument.
 
