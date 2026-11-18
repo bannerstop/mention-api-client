@@ -3,7 +3,7 @@
     "info": {
         "title": "mention-api /v2",
         "version": "7",
-        "description": "Named, typed read Queries and the Routines that write approved fields to Mention. Generated from Catalog version 7."
+        "description": "Sample document for the generator tests, with invented Queries and Routines."
     },
     "security": [
         {

@@ -323,7 +323,7 @@ The generator reads the PHP version of your app from `require.php` in your
 `composer.json` (`--composer=<file>` for another one). When even the lowest PHP
 your constraint allows is 8.2 or higher, the classes are `readonly`; otherwise
 they are plain classes with typed properties that run on PHP 7.4 and later.
-Both give you the same properties and methods. `--php=7.4` or `--php=8.2`
+Both give you the same properties and methods; only the `readonly` ones are enforced by PHP itself. `--php=7.4` or `--php=8.2`
 overrides the choice. The generator itself runs on PHP 7.4 to 8.5.
 
 ### Keep the classes current
