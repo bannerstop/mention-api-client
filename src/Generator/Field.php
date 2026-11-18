@@ -63,12 +63,4 @@ final class Field
     {
         return '' === $this->declaredType || 'array' === $this->declaredType || '?array' === $this->declaredType;
     }
-
-    /**
-     * The type with its name, as in a constructor signature: "?int $id" or "$value".
-     */
-    public function signature(): string
-    {
-        return ('' === $this->declaredType ? '' : $this->declaredType . ' ') . '$' . $this->name . ($this->optional ? ' = null' : '');
-    }
 }
