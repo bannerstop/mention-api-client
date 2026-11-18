@@ -12,6 +12,8 @@ use Bannerstop\MentionApi\Exception\MentionApiException;
 use Bannerstop\MentionApi\Result\QueryDescription;
 use Bannerstop\MentionApi\Result\QueryList;
 use Bannerstop\MentionApi\Result\QueryResult;
+use Bannerstop\MentionApi\Result\RoutineList;
+use Bannerstop\MentionApi\Result\RoutineResult;
 use Bannerstop\MentionApi\Support\SystemClock;
 use Psr\Clock\ClockInterface;
 use Psr\Http\Client\ClientInterface;
@@ -51,12 +53,7 @@ final class MentionApiClient
     public function run(string $name, array $parameters = [], ?string $database = null): QueryResult
     {
         $this->assertName($name);
-        $body = ['parameters' => $this->parametersObject($parameters)];
-        if (null !== $database) {
-            $body['database'] = $database;
-        }
-
-        $response = $this->transport->send('POST', '/v2/queries/' . $name, $body, true);
+        $response = $this->transport->send('POST', '/v2/queries/' . $name, $this->body($parameters, $database), true);
         $meta = $response->getMeta();
 
         return new QueryResult($response->getData(), $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId(), $response->getDeprecation());
@@ -100,6 +97,38 @@ final class MentionApiClient
         );
     }
 
+    /**
+     * Lists the Routines your Consumer may call.
+     *
+     * @throws MentionApiException
+     */
+    public function listRoutines(): RoutineList
+    {
+        $response = $this->transport->send('GET', '/v2/routines');
+
+        return new RoutineList($response->getData(), $response->getRequestId());
+    }
+
+    /**
+     * Runs a Routine, which writes to Mention. A Routine is never retried automatically: when this throws a
+     * TransportException or a 5xx problem, the Routine may or may not have run, so check before you run it again.
+     *
+     * @param array<string, mixed> $parameters the Routine's Parameters by name
+     * @param string|null          $database   the Mention database, the server's default when left out
+     *
+     * @throws \InvalidArgumentException when the name or the Parameters cannot be valid
+     * @throws MentionApiException
+     */
+    public function runRoutine(string $name, array $parameters = [], ?string $database = null): RoutineResult
+    {
+        $this->assertName($name);
+        $response = $this->transport->send('POST', '/v2/routines/' . $name, $this->body($parameters, $database));
+        $data = $response->getData();
+        $meta = $response->getMeta();
+
+        return new RoutineResult($meta['routine'] ?? $name, (string) ($data['action'] ?? ''), (int) ($meta['rows'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
+    }
+
     private function assertName(string $name): void
     {
         if (1 !== preg_match(self::NAME_PATTERN, $name)) {
@@ -110,17 +139,18 @@ final class MentionApiClient
     /**
      * @param array<array-key, mixed> $parameters
      *
-     * @return array<string, mixed>|\stdClass
+     * @return array<string, mixed>
      */
-    private function parametersObject(array $parameters)
+    private function body(array $parameters, ?string $database): array
     {
-        if ([] === $parameters) {
-            return new \stdClass();
-        }
-        if (array_keys($parameters) === range(0, \count($parameters) - 1)) {
+        if ([] !== $parameters && array_keys($parameters) === range(0, \count($parameters) - 1)) {
             throw new \InvalidArgumentException('Parameters must be an array keyed by Parameter name, not a list.');
         }
+        $body = ['parameters' => [] === $parameters ? new \stdClass() : $parameters];
+        if (null !== $database) {
+            $body['database'] = $database;
+        }
 
-        return $parameters;
+        return $body;
     }
 }
