@@ -52,12 +52,12 @@ final class RoutineTest extends ClientTestCase
     {
         $this->http->enqueue(self::ran('updated', 'req_run'));
 
-        $result = $this->client()->runRoutine('setContactEmail', ['contactId' => 7, 'email' => 'a@example.com'], 'bannerstop_gmbh');
+        $result = $this->client()->runRoutine('setContactEmail', ['contactId' => 7, 'email' => 'a@example.com'], 'example_db');
 
         $request = $this->http->lastRequest();
         self::assertSame('POST', $request->getMethod());
         self::assertSame('https://mention-api.example.com/v2/routines/setContactEmail', (string) $request->getUri());
-        self::assertSame(['parameters' => ['contactId' => 7, 'email' => 'a@example.com'], 'database' => 'bannerstop_gmbh'], $this->http->lastJsonBody());
+        self::assertSame(['parameters' => ['contactId' => 7, 'email' => 'a@example.com'], 'database' => 'example_db'], $this->http->lastJsonBody());
         self::assertSame('updated', $result->getAction());
         self::assertSame('setContactEmail', $result->getRoutine());
         self::assertSame(1, $result->getRowsWritten());

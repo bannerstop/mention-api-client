@@ -48,7 +48,7 @@ final class QueryCatalogTest extends ClientTestCase
                 'description' => 'All things',
                 'parameters' => [['name' => 'limit', 'type' => 'int'], ['name' => 'since', 'type' => 'date']],
                 'columns' => [['name' => 'id', 'type' => 'int', 'description' => 'The id']],
-                'databases' => ['bannerstop_gmbh'],
+                'databases' => ['example_db'],
                 'timeout_seconds' => 20,
                 'row_limit' => 5000,
             ],
@@ -66,7 +66,7 @@ final class QueryCatalogTest extends ClientTestCase
         self::assertSame('All things', $query->getDescription());
         self::assertSame([['name' => 'limit', 'type' => 'int'], ['name' => 'since', 'type' => 'date']], $query->getParameters());
         self::assertSame([['name' => 'id', 'type' => 'int', 'description' => 'The id']], $query->getColumns());
-        self::assertSame(['bannerstop_gmbh'], $query->getDatabases());
+        self::assertSame(['example_db'], $query->getDatabases());
         self::assertSame(20, $query->getTimeoutSeconds());
         self::assertSame(5000, $query->getRowLimit());
         self::assertFalse($query->isDeprecated());
