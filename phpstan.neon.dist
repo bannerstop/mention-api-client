@@ -2,3 +2,11 @@ parameters:
     level: 8
     paths:
         - src
+    ignoreErrors:
+        # Guzzle and Symfony HttpClient are optional and looked up by name; with them installed (as in development)
+        # the checks that make sure they are PSR-18 and PSR-17 implementations are always true.
+        -
+            identifiers:
+                - instanceof.alwaysTrue
+                - booleanAnd.alwaysTrue
+            path: src/Generator/Console/EnvironmentClient.php

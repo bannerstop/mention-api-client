@@ -5,11 +5,12 @@ It lists, describes and runs **Queries** (named, typed reads of Mention data) an
 lists and runs **Routines** (named, reviewed writes), and takes care of the parts
 every caller would otherwise write again:
 
-- **Authentication** with an API key, or as a Keycloak client with client
-  credentials (the access token is cached and renewed shortly before it expires)
+- **Authentication** with an API key, or with OAuth 2.0 client credentials
+  (the access token is cached, renewed shortly before it expires and
+  replaced once when the server rejects it)
 - **One exception class per error code** of the problem+json answers
 - **The request id** on every result and every exception
-- **A timeout** (30 s by default)
+- **A timeout** (30 s by default), applied to Guzzle and Symfony HttpClient for you
 - **Retries** for Queries (up to 2 times on 429, 503 and connection errors,
   honouring `Retry-After`), never for Routines
 - **Typed wrappers**: a generator that turns the OpenAPI document of your
@@ -48,7 +49,7 @@ You also need a [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP client and
 
 ```bash
 composer require guzzlehttp/guzzle               # Guzzle 7, ships both
-composer require symfony/http-client nyholm/psr7 # Symfony HttpClient (Psr18Client)
+composer require symfony/http-client nyholm/psr7 # Symfony HttpClient (use SymfonyTimeoutClient, see "Timeout")
 composer require php-http/guzzle6-adapter nyholm/psr7 # projects stuck on Guzzle 6
 ```
 
@@ -69,12 +70,21 @@ $config = MentionApiConfig::forApiKey(
 );
 ```
 
-### Keycloak client credentials
+### OAuth 2.0 client credentials
 
-The Keycloak client needs service accounts enabled and the client scope
-`mention-api`. The client fetches the access token itself, keeps it in the PSR-16
-cache you pass in (and in memory) and fetches a new one 30 seconds before the
-old one expires.
+Any OAuth 2.0 server that issues tokens mention-api accepts will do; pass its token
+endpoint (the example below is the shape Keycloak uses). The client must be allowed
+the client-credentials grant and the scope `mention-api`.
+
+The client fetches the access token itself, keeps it in the PSR-16 cache you pass
+in (and in memory) and fetches a new one 30 seconds before the old one expires.
+
+When the server answers a call with 401 although the token has not expired (it was
+revoked, or the clocks differ), the client drops the cached token, fetches a new
+one and sends the call again, once. This also holds for Routines: a 401 means that
+nothing ran. It does not use up the retries of a Query, and a second 401 is thrown
+as `UnauthorizedException`. With an API key there is nothing to refresh, so a 401
+is thrown at once.
 
 ```php
 $config = MentionApiConfig::forClientCredentials(
@@ -95,14 +105,28 @@ its own token.
 $config = $config->withTimeout(10.0); // seconds, 30.0 by default
 ```
 
-PSR-18 has no way to set a timeout, so the timeout of the configuration reaches
-only HTTP clients that implement `Bannerstop\MentionApi\Http\TimeoutAware` (a thin
-decorator around your client does it). **For every other client, set the
-timeout on the client itself**, because most clients wait forever by default:
+PSR-18 has no way to set a timeout, and most HTTP clients wait forever or for a
+minute by default. How the timeout of the configuration reaches your client
+depends on the client:
+
+| HTTP client | What you do |
+| --- | --- |
+| Guzzle 7 (`GuzzleHttp\Client`) | Nothing. A Guzzle client that you pass to `MentionApiClient` is wrapped in `GuzzleTimeoutClient`, which sends every call with this timeout. It replaces a `timeout` that you set on the Guzzle client itself; set `withTimeout()` on the configuration instead. |
+| Symfony HttpClient | Pass `SymfonyTimeoutClient` instead of a `Psr18Client`: `new SymfonyTimeoutClient(HttpClient::create())`. It sets Symfony's `timeout` and `max_duration` (the limit for the whole call). A `Psr18Client` cannot be wrapped afterwards, so it keeps the timeout it was created with. |
+| Any other PSR-18 client | The timeout is not applied. Set it on the client itself, or let a thin decorator implement `Bannerstop\MentionApi\Http\TimeoutAware`; the client then receives the timeout of the configuration. |
 
 ```php
-new GuzzleHttp\Client(['timeout' => 30, 'connect_timeout' => 10]);
+use Bannerstop\MentionApi\Http\SymfonyTimeoutClient;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Symfony\Component\HttpClient\HttpClient;
+
+$http = new SymfonyTimeoutClient(HttpClient::create());
+$factory = new Psr17Factory();
+$mention = new MentionApiClient($config, $http, $factory, $factory);
 ```
+
+The timeout also applies to the request for the access token. Guzzle and
+Symfony HttpClient are optional: this package does not require them.
 
 ## Usage
 
@@ -116,7 +140,7 @@ use GuzzleHttp\Psr7\HttpFactory;
 $factory = new HttpFactory();
 $mention = new MentionApiClient(
     $config,
-    new Client(['timeout' => 30, 'connect_timeout' => 10]), // PSR-18 client
+    new Client(),   // PSR-18 client, gets the timeout of $config
     $factory,   // PSR-17 request factory
     $factory,   // PSR-17 stream factory
     $psr16Cache // optional, used for the access token of client credentials
@@ -217,7 +241,7 @@ try {
 
 | Status | Problem code | Exception | What to do |
 | --- | --- | --- | --- |
-| 401 | `unauthorized` | `UnauthorizedException` | Fix the credential; do not retry |
+| 401 | `unauthorized` | `UnauthorizedException` | Fix the credential; a client-credentials token is replaced once before this is thrown |
 | 403 | `forbidden` | `ForbiddenException` | Ask for it to be added to your Scope |
 | 403 | `outside-scope`, `not-in-scope`, `not-owner` | `OutsideScopeException`, `NotInScopeException`, `NotOwnerException` (all `ForbiddenException`) | Same |
 | 404 | `not-found`, `unknown-query`, `unknown-routine`, `item-not-found` | `NotFoundException`, `UnknownQueryException`, `UnknownRoutineException`, `ItemNotFoundException` (the last three are `NotFoundException`) | Fix the name or the item |
@@ -238,10 +262,16 @@ letters and digits only) or with a list instead of named Parameters throw a plai
 | Call | Retried | How |
 | --- | --- | --- |
 | `run`, `listQueries`, `describeQuery` | up to 2 times on 429, 503 and connection errors | waits the `Retry-After` of the answer, at most 10 s; 1 s, then 2 s without one |
-| `runRoutine`, `listRoutines` | never | a Routine writes to Mention, so a call that failed without an answer may have run: check before you run it again |
+| `runRoutine`, `listRoutines` | never (except once after a 401 with a new token, see above) | a Routine writes to Mention, so a call that failed without an answer may have run: check before you run it again |
 
-Everything else (401, 403, 404, 422, 500, 504) is final at once. When the retries are used up, the last
+Everything else (403, 404, 422, 500, 504) is final at once. When the retries are used up, the last
 error is thrown.
+
+A 401 with client credentials is handled apart from these retries: the cached token
+is dropped, a new one is fetched and the call is sent again once, for Queries and
+Routines alike, because a call that was refused for its credential has not run. It
+does not count against the 2 retries of a Query. With an API key a 401 is thrown at
+once.
 
 ## Typed wrappers
 

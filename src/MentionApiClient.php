@@ -6,6 +6,7 @@ namespace Bannerstop\MentionApi;
 
 use Bannerstop\MentionApi\Auth\ApiKeyAuthenticator;
 use Bannerstop\MentionApi\Auth\ClientCredentialsAuthenticator;
+use Bannerstop\MentionApi\Http\GuzzleTimeoutClient;
 use Bannerstop\MentionApi\Http\NativeSleeper;
 use Bannerstop\MentionApi\Http\Sleeper;
 use Bannerstop\MentionApi\Http\TimeoutAware;
@@ -18,6 +19,7 @@ use Bannerstop\MentionApi\Result\QueryResult;
 use Bannerstop\MentionApi\Result\RoutineList;
 use Bannerstop\MentionApi\Result\RoutineResult;
 use Bannerstop\MentionApi\Support\SystemClock;
+use GuzzleHttp\ClientInterface as GuzzleClient;
 use Psr\Clock\ClockInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -43,9 +45,7 @@ final class MentionApiClient
         ?Sleeper $sleeper = null
     ) {
         $clock = $clock ?? new SystemClock();
-        if ($http instanceof TimeoutAware) {
-            $http = $http->withTimeout($config->getTimeout());
-        }
+        $http = $this->withTimeout($http, $config->getTimeout());
         if (null !== $config->getApiKey()) {
             $authenticator = new ApiKeyAuthenticator($config->getApiKey());
         } else {
@@ -158,6 +158,19 @@ final class MentionApiClient
         $meta = $response->getMeta();
 
         return new RoutineResult((string) ($meta['routine'] ?? $name), (string) ($data['action'] ?? ''), (int) ($meta['rows'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
+    }
+
+    /**
+     * A Guzzle client is wrapped, a client that is TimeoutAware is asked, and every other client keeps the timeout it
+     * was configured with.
+     */
+    private function withTimeout(ClientInterface $http, float $seconds): ClientInterface
+    {
+        if ($http instanceof GuzzleClient) {
+            $http = new GuzzleTimeoutClient($http);
+        }
+
+        return $http instanceof TimeoutAware ? $http->withTimeout($seconds) : $http;
     }
 
     private function assertName(string $name): void

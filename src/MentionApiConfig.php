@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi;
 
 /**
- * Where mention-api lives and how to authenticate: with an API key or as a Keycloak client with client credentials.
+ * Where mention-api lives and how to authenticate: with an API key or with OAuth 2.0 client credentials.
  * Immutable; secrets are hidden from var_dump().
  */
 final class MentionApiConfig
@@ -56,11 +56,11 @@ final class MentionApiConfig
     }
 
     /**
-     * Authenticate as a Keycloak client with a service account (client-credentials grant). The access token is fetched
-     * when needed, cached and renewed shortly before it expires.
+     * Authenticate with the OAuth 2.0 client-credentials grant. The access token is fetched when needed, cached and
+     * renewed shortly before it expires.
      *
      * @param string $baseUrl  e.g. https://mention-api.example.com (without /v2)
-     * @param string $tokenUrl the token endpoint, e.g. https://sso.example.com/realms/example/protocol/openid-connect/token
+     * @param string $tokenUrl the token endpoint of the OAuth 2.0 server, e.g. https://sso.example.com/realms/example/protocol/openid-connect/token
      * @param string $scope    the client scope that adds the mention-api audience to the token
      */
     public static function forClientCredentials(string $baseUrl, string $tokenUrl, string $clientId, string $clientSecret, string $scope = self::DEFAULT_SCOPE): self

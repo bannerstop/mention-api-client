@@ -14,7 +14,7 @@ use Psr\SimpleCache\CacheInterface;
 
 /**
  * Fetches an access token with the client-credentials grant, keeps it in the cache (and in memory) and renews it
- * shortly before it expires.
+ * shortly before it expires or when the server has refused it.
  *
  * @internal
  */
@@ -68,7 +68,28 @@ final class ClientCredentialsAuthenticator implements Authenticator
             $this->fetch($now);
         }
 
-        return 'Bearer ' . $this->token;
+        return self::bearer((string) $this->token);
+    }
+
+    public function reject(string $authorizationHeader): bool
+    {
+        if (null !== $this->token && self::bearer($this->token) === $authorizationHeader) {
+            $this->token = null;
+        }
+        if (null !== $this->cache) {
+            $entry = $this->cache->get($this->cacheKey());
+            // Another process may have stored a newer token in the meantime: keep that one.
+            if (\is_array($entry) && isset($entry['access_token']) && \is_string($entry['access_token']) && self::bearer($entry['access_token']) === $authorizationHeader) {
+                $this->cache->delete($this->cacheKey());
+            }
+        }
+
+        return true;
+    }
+
+    private static function bearer(string $token): string
+    {
+        return 'Bearer ' . $token;
     }
 
     private function cacheKey(): string
