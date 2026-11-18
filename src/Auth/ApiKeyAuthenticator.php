@@ -21,6 +21,11 @@ final class ApiKeyAuthenticator implements Authenticator
         return 'Bearer ' . $this->apiKey;
     }
 
+    public function reject(string $authorizationHeader): bool
+    {
+        return false;
+    }
+
     /**
      * @return array<string, mixed>
      */

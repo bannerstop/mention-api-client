@@ -62,12 +62,17 @@ final class Transport
      */
     public function send(string $method, string $path, ?array $body = null, bool $retry = false): ApiResponse
     {
-        for ($retries = 0;; ++$retries) {
+        $tokenRefreshed = false;
+        $retries = 0;
+        while (true) {
             $retryAfter = null;
             $retryable = false;
+            $rejected = false;
+            $request = $this->request($method, $path, $body);
             try {
-                $response = $this->http->sendRequest($this->request($method, $path, $body));
+                $response = $this->http->sendRequest($request);
                 $outcome = $this->read($response);
+                $rejected = 401 === $response->getStatusCode();
                 $retryable = \in_array($response->getStatusCode(), [429, 503], true);
                 $retryAfter = $retryable ? $this->retryAfter($response) : null;
             } catch (NetworkExceptionInterface $e) {
@@ -79,10 +84,18 @@ final class Transport
             if ($outcome instanceof ApiResponse) {
                 return $outcome;
             }
+            // A 401 means that nothing ran, so sending the call again with a new token is safe for Routines too.
+            // This is separate from the retries below and happens once per call.
+            if ($rejected && !$tokenRefreshed && $this->authenticator->reject($request->getHeaderLine('Authorization'))) {
+                $tokenRefreshed = true;
+
+                continue;
+            }
             if (!$retry || !$retryable || $retries >= self::MAX_RETRIES) {
                 throw $outcome;
             }
             $this->sleeper->sleep(null === $retryAfter ? (float) ($retries + 1) : (float) min($retryAfter, self::MAX_RETRY_WAIT));
+            ++$retries;
         }
     }
 
