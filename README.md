@@ -5,8 +5,8 @@ It lists, describes and runs **Queries** (named, typed reads of Mention data) an
 lists and runs **Routines** (named, reviewed writes), and takes care of the parts
 every caller would otherwise write again:
 
-- **Authentication** with an API key, or as a Keycloak client with client
-  credentials (the access token is cached, renewed shortly before it expires and
+- **Authentication** with an API key, or with OAuth 2.0 client credentials
+  (the access token is cached, renewed shortly before it expires and
   replaced once when the server rejects it)
 - **One exception class per error code** of the problem+json answers
 - **The request id** on every result and every exception
@@ -70,12 +70,14 @@ $config = MentionApiConfig::forApiKey(
 );
 ```
 
-### Keycloak client credentials
+### OAuth 2.0 client credentials
 
-The Keycloak client needs service accounts enabled and the client scope
-`mention-api`. The client fetches the access token itself, keeps it in the PSR-16
-cache you pass in (and in memory) and fetches a new one 30 seconds before the
-old one expires.
+Any OAuth 2.0 server that issues tokens mention-api accepts will do; pass its token
+endpoint (the example below is the shape Keycloak uses). The client must be allowed
+the client-credentials grant and the scope `mention-api`.
+
+The client fetches the access token itself, keeps it in the PSR-16 cache you pass
+in (and in memory) and fetches a new one 30 seconds before the old one expires.
 
 When the server answers a call with 401 although the token has not expired (it was
 revoked, or the clocks differ), the client drops the cached token, fetches a new

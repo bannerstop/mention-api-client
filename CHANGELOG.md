@@ -9,7 +9,7 @@ All notable changes to this package are documented here. The format follows
 ### Added
 
 - `MentionApiClient` for the `/v2` interface: `run`, `listQueries`, `describeQuery`, `runRoutine` and `listRoutines`.
-- Authentication with an API key or with Keycloak client credentials, with the access token cached in a PSR-16 cache
+- Authentication with an API key or with OAuth 2.0 client credentials, with the access token cached in a PSR-16 cache
   and renewed shortly before it expires.
 - One exception class per problem code, all below `MentionApiException`, with the request id on every result and exception.
 - A timeout setting (30 seconds by default) for HTTP clients that implement `TimeoutAware`. A Guzzle 7 client passed to

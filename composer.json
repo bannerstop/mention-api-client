@@ -1,8 +1,8 @@
 {
     "name": "bannerstop/mention-api-client",
-    "description": "Framework-agnostic PHP client for the mention-api /v2 interface: list, describe and run Queries and Routines with API key or Keycloak client-credentials authentication, typed errors and retries",
+    "description": "Framework-agnostic PHP client for the mention-api /v2 interface: list, describe and run Queries and Routines with API key or OAuth 2.0 client-credentials authentication, typed errors and retries",
     "type": "library",
-    "keywords": ["mention", "api-client", "psr-18", "psr-17", "psr-16", "problem-details", "keycloak"],
+    "keywords": ["mention", "api-client", "psr-18", "psr-17", "psr-16", "problem-details", "oauth2", "keycloak"],
     "license": "MIT",
     "authors": [
         {
