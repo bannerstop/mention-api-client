@@ -1,0 +1,99 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Bannerstop\MentionApi\Generator;
+
+/**
+ * The directory the generated classes are committed to. It owns the files that carry the generator's marker below
+ * Query/ and Routine/, plus Queries.php and Routines.php; nothing else in it is ever changed or removed.
+ */
+final class OutputDirectory
+{
+    private const OWNED_DIRECTORIES = ['Query', 'Routine'];
+
+    private string $directory;
+
+    public function __construct(string $directory)
+    {
+        $this->directory = rtrim($directory, '/\\');
+    }
+
+    /**
+     * Writes the files that differ and removes generated files that are no longer needed.
+     *
+     * @param array<string, string> $files the code by path relative to the directory
+     *
+     * @throws GeneratorException when a file cannot be written
+     */
+    public function write(array $files): void
+    {
+        foreach ($files as $path => $code) {
+            $target = $this->directory . '/' . $path;
+            if (is_file($target) && file_get_contents($target) === $code) {
+                continue;
+            }
+            $folder = \dirname($target);
+            if (!is_dir($folder) && !@mkdir($folder, 0777, true) && !is_dir($folder)) {
+                throw new GeneratorException(sprintf('Cannot create the directory "%s".', $folder));
+            }
+            if (false === @file_put_contents($target, $code)) {
+                throw new GeneratorException(sprintf('Cannot write "%s".', $target));
+            }
+        }
+        foreach ($this->stale($files) as $path) {
+            if (!@unlink($this->directory . '/' . $path)) {
+                throw new GeneratorException(sprintf('Cannot remove "%s".', $this->directory . '/' . $path));
+            }
+        }
+    }
+
+    /**
+     * Compares the files on disk with the given ones, and changes nothing.
+     *
+     * @param array<string, string> $files the code by path relative to the directory
+     */
+    public function drift(array $files): Drift
+    {
+        $missing = [];
+        $changed = [];
+        foreach ($files as $path => $code) {
+            $target = $this->directory . '/' . $path;
+            if (!is_file($target)) {
+                $missing[] = $path;
+            } elseif (file_get_contents($target) !== $code) {
+                $changed[] = $path;
+            }
+        }
+
+        return new Drift($missing, $changed, $this->stale($files));
+    }
+
+    /**
+     * @param array<string, string> $files
+     *
+     * @return list<string>
+     */
+    private function stale(array $files): array
+    {
+        $stale = [];
+        foreach (self::OWNED_DIRECTORIES as $folder) {
+            foreach (glob($this->directory . '/' . $folder . '/*.php') ?: [] as $file) {
+                $path = $folder . '/' . basename($file);
+                if (!isset($files[$path]) && self::isGenerated($file)) {
+                    $stale[] = $path;
+                }
+            }
+        }
+        sort($stale, SORT_STRING);
+
+        return $stale;
+    }
+
+    private static function isGenerated(string $file): bool
+    {
+        $head = (string) file_get_contents($file, false, null, 0, 512);
+
+        return false !== strpos($head, '// ' . WrapperGenerator::MARKER);
+    }
+}
