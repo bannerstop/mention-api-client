@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi\Http;
 
 use Bannerstop\MentionApi\Auth\Authenticator;
+use Bannerstop\MentionApi\Exception\UnexpectedResponseException;
 use Bannerstop\MentionApi\MentionApiConfig;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 /**
@@ -52,12 +54,35 @@ final class Transport
         }
 
         $response = $this->http->sendRequest($request);
-        $document = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
-        $requestId = $response->getHeaderLine('X-Request-Id');
-        if ('' === $requestId && isset($document['meta']['request_id']) && \is_string($document['meta']['request_id'])) {
-            $requestId = $document['meta']['request_id'];
+        $status = $response->getStatusCode();
+        $document = json_decode((string) $response->getBody(), true);
+        $requestId = $this->requestId($response, $document);
+
+        if ($status >= 200 && $status < 300) {
+            if (!\is_array($document)) {
+                throw new UnexpectedResponseException('The answer is not a JSON document.', $status, $requestId);
+            }
+
+            return new ApiResponse($document, $requestId);
+        }
+        if (ProblemMapper::isProblem($document)) {
+            throw ProblemMapper::exceptionFor($status, $document, $requestId);
         }
 
-        return new ApiResponse($document, '' === $requestId ? null : $requestId);
+        throw new UnexpectedResponseException(sprintf('Unexpected answer with status %d.', $status), $status, $requestId);
+    }
+
+    /**
+     * @param mixed $document
+     */
+    private function requestId(ResponseInterface $response, $document): ?string
+    {
+        $requestId = $response->getHeaderLine('X-Request-Id');
+        if ('' === $requestId && \is_array($document)) {
+            $candidate = $document['request_id'] ?? ($document['meta']['request_id'] ?? null);
+            $requestId = \is_string($candidate) ? $candidate : '';
+        }
+
+        return '' === $requestId ? null : $requestId;
     }
 }

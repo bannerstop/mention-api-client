@@ -55,10 +55,9 @@ final class MentionApiClient
         }
 
         $response = $this->transport->send('POST', '/v2/queries/' . $name, $body);
-        $document = $response->getDocument();
-        $meta = $document['meta'] ?? [];
+        $meta = $response->getMeta();
 
-        return new QueryResult($document['data'], $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
+        return new QueryResult($response->getData(), $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
     }
 
     private function assertName(string $name): void
