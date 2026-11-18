@@ -8,6 +8,7 @@ use Bannerstop\MentionApi\Auth\ApiKeyAuthenticator;
 use Bannerstop\MentionApi\Auth\ClientCredentialsAuthenticator;
 use Bannerstop\MentionApi\Http\NativeSleeper;
 use Bannerstop\MentionApi\Http\Sleeper;
+use Bannerstop\MentionApi\Http\TimeoutAware;
 use Bannerstop\MentionApi\Http\Transport;
 use Bannerstop\MentionApi\Exception\MentionApiException;
 use Bannerstop\MentionApi\Result\QueryDescription;
@@ -41,6 +42,9 @@ final class MentionApiClient
         ?Sleeper $sleeper = null
     ) {
         $clock = $clock ?? new SystemClock();
+        if ($http instanceof TimeoutAware) {
+            $http = $http->withTimeout($config->getTimeout());
+        }
         if (null !== $config->getApiKey()) {
             $authenticator = new ApiKeyAuthenticator($config->getApiKey());
         } else {
