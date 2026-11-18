@@ -12,6 +12,8 @@ every caller would otherwise write again:
 - **A timeout** (30 s by default)
 - **Retries** for Queries (up to 2 times on 429, 503 and connection errors,
   honouring `Retry-After`), never for Routines
+- **Typed wrappers**: a generator that turns the OpenAPI document of your
+  Consumer into classes for the Parameters and rows of every Query and Routine
 
 It only depends on PSR interfaces (PSR-18 HTTP client, PSR-17 factories, PSR-16
 cache, PSR-20 clock), so it runs with any HTTP client and inside any framework.
@@ -241,6 +243,108 @@ letters and digits only) or with a list instead of named Parameters throw a plai
 Everything else (401, 403, 404, 422, 500, 504) is final at once. When the retries are used up, the last
 error is thrown.
 
+## Typed wrappers
+
+`run('getInvoiceTotals', [...])` returns arrays and takes any array. The
+generator reads the OpenAPI document of your Consumer (`GET /v2/openapi.json`,
+exactly the Queries and Routines your Consumer may call) and writes classes for
+your app, so that your IDE and static analysis know the Parameters and the
+columns:
+
+```bash
+vendor/bin/mention-api-client generate --namespace='App\Mention' --dir=src/Mention
+```
+
+Commit the output. Nothing is generated at runtime, and the generated code uses
+the client above, so authentication, errors, retries and request ids behave the
+same.
+
+For every Query it writes a **Parameters** class, a **Row** class and a typed
+method; for every Routine a Parameters class and a typed method:
+
+```
+src/Mention/
+    Queries.php                          one method per Query
+    Routines.php                         one method per Routine
+    Query/GetInvoiceTotalsParameters.php
+    Query/GetInvoiceTotalsRow.php
+    Routine/SetWidgetLabelParameters.php
+```
+
+```php
+use App\Mention\Queries;
+use App\Mention\Query\GetInvoiceTotalsParameters;
+use App\Mention\Routines;
+use App\Mention\Routine\SetWidgetLabelParameters;
+
+$queries = new Queries($mention);   // $mention is the MentionApiClient from above
+$rows = $queries->getInvoiceTotals(new GetInvoiceTotalsParameters(12, '2026-01-01', '2026-01-31'));
+
+foreach ($rows as $row) {           // GetInvoiceTotalsRow objects
+    echo $row->invoiceId, ' ', $row->total, "\n";
+}
+echo $rows->getRequestId();         // also getVersion(), getDurationMs(), isDeprecated()
+
+$result = (new Routines($mention))->setWidgetLabel(new SetWidgetLabelParameters(4, 'Blue', $spark));
+$result->getAction();               // the RoutineResult of the generic client
+```
+
+The constructor of a Parameters class takes the Parameters in the order the
+Query declares them. A Query without required Parameters can be called without
+a Parameters object. Every method takes the Mention database as an optional
+second argument.
+
+A **Row** has one public property per result column, named like the column. Every
+property can be `null`. Columns are typed by their database type: integers are
+`int`, `bit` is `bool`, `float` and `real` are `float`. Decimal and money
+columns (`decimal`, `numeric`, `money`, `smallmoney`) stay `string`, so money
+keeps its precision, and so do dates and times, as the server delivers them. A column of
+a type the generator does not know keeps its value as delivered. `Row::fromArray()` reads one row
+of the generic result; a missing column is `null`.
+
+### Where the document comes from
+
+By default the document is fetched live. Pick one way to give the generator
+your credentials:
+
+- **A file that returns your configured client**, so that the generator uses the
+  same wiring as your app: `--client=config/mention-client.php`, where the file
+  ends with `return new MentionApiClient(...);` (see "Create the client").
+- **Environment variables**: `MENTION_API_URL` and either `MENTION_API_KEY` or
+  `MENTION_API_TOKEN_URL`, `MENTION_API_CLIENT_ID` and `MENTION_API_CLIENT_SECRET`
+  (optionally `MENTION_API_SCOPE`). This needs Guzzle 7 or `symfony/http-client`
+  in your project.
+- **A file** with the document, for offline use or a saved copy:
+  `--source=openapi.json`.
+
+### PHP version of the generated code
+
+The generator reads the PHP version of your app from `require.php` in your
+`composer.json` (`--composer=<file>` for another one). When even the lowest PHP
+your constraint allows is 8.2 or higher, the classes are `readonly`; otherwise
+they are plain classes with typed properties that run on PHP 7.4 and later.
+Both give you the same properties and methods. `--php=7.4` or `--php=8.2`
+overrides the choice. The generator itself runs on PHP 7.4 to 8.5.
+
+### Keep the classes current
+
+The output is deterministic: the same document gives the same files, with no
+timestamps and in a stable order. `--check` writes nothing, lists the files that
+differ and exits with status 1, so that your CI notices when the catalog of your
+Consumer changed:
+
+```bash
+vendor/bin/mention-api-client generate --check --namespace='App\Mention' --dir=src/Mention --client=config/mention-client.php
+```
+
+Run `generate` again and commit the diff when it fails. `generate` also removes
+generated files of Queries and Routines that are gone; it only ever touches
+files below `Query/` and `Routine/` that carry its marker comment, and
+`Queries.php` and `Routines.php`. Do not edit generated files.
+
+The generator refuses a document it cannot turn into valid classes, for example a
+column whose name is not a PHP identifier, and says which Query it is about.
+
 ## Wiring it by hand
 
 ### Plain PHP
@@ -338,7 +442,11 @@ vendor/bin/phpunit
 vendor/bin/phpstan analyse
 ```
 
-The tests run against a scripted PSR-18 client; no network is needed. CI runs them
+The tests run against a scripted PSR-18 client; no network is needed. The
+generator is tested against a sample OpenAPI document (`tests/Fixtures/openapi.json`)
+with snapshots of the generated code per PHP target in `tests/Snapshots`; after
+changing the generator, regenerate them with `UPDATE_SNAPSHOTS=1 vendor/bin/phpunit`
+and review the diff. CI runs them
 on every PHP version from 7.4 to 8.5, with the highest and the lowest allowed
 dependencies.
 
