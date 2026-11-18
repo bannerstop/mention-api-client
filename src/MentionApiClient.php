@@ -11,6 +11,7 @@ use Bannerstop\MentionApi\Http\Sleeper;
 use Bannerstop\MentionApi\Http\TimeoutAware;
 use Bannerstop\MentionApi\Http\Transport;
 use Bannerstop\MentionApi\Exception\MentionApiException;
+use Bannerstop\MentionApi\Exception\UnexpectedResponseException;
 use Bannerstop\MentionApi\Result\QueryDescription;
 use Bannerstop\MentionApi\Result\QueryList;
 use Bannerstop\MentionApi\Result\QueryResult;
@@ -106,6 +107,25 @@ final class MentionApiClient
             $response->getRequestId(),
             $response->getDeprecation(),
         );
+    }
+
+    /**
+     * Fetches the OpenAPI document that describes exactly the Queries and Routines your Consumer may call. The
+     * generator for typed wrappers reads it; you can also check your own code against it.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws MentionApiException
+     */
+    public function openApi(): array
+    {
+        $response = $this->transport->send('GET', '/v2/openapi.json', null, true);
+        $document = $response->getDocument();
+        if (!isset($document['openapi']) || !isset($document['paths']) || !\is_array($document['paths'])) {
+            throw new UnexpectedResponseException('The answer is not an OpenAPI document.', 200, $response->getRequestId());
+        }
+
+        return $document;
     }
 
     /**
