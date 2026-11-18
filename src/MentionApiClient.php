@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi;
 
 use Bannerstop\MentionApi\Auth\ApiKeyAuthenticator;
+use Bannerstop\MentionApi\Auth\ClientCredentialsAuthenticator;
 use Bannerstop\MentionApi\Http\NativeSleeper;
 use Bannerstop\MentionApi\Http\Sleeper;
 use Bannerstop\MentionApi\Http\Transport;
@@ -39,7 +40,13 @@ final class MentionApiClient
         ?ClockInterface $clock = null,
         ?Sleeper $sleeper = null
     ) {
-        $this->transport = new Transport($config, $http, $requestFactory, $streamFactory, new ApiKeyAuthenticator($config->getApiKey()), $clock ?? new SystemClock(), $sleeper ?? new NativeSleeper());
+        $clock = $clock ?? new SystemClock();
+        if (null !== $config->getApiKey()) {
+            $authenticator = new ApiKeyAuthenticator($config->getApiKey());
+        } else {
+            $authenticator = new ClientCredentialsAuthenticator((string) $config->getTokenUrl(), (string) $config->getClientId(), (string) $config->getClientSecret(), $config->getScope(), $http, $requestFactory, $streamFactory, $cache, $clock);
+        }
+        $this->transport = new Transport($config, $http, $requestFactory, $streamFactory, $authenticator, $clock, $sleeper ?? new NativeSleeper());
     }
 
     /**
