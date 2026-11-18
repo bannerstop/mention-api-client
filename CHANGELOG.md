@@ -16,3 +16,8 @@ All notable changes to this package are documented here. The format follows
 - Retries for Query calls (up to 2 times on 429, 503 and connection errors, honouring `Retry-After` up to 10 seconds);
   Routines are never retried.
 - Support for PHP 7.4 to 8.5.
+- `MentionApiClient::openApi()` fetches the OpenAPI document of your Consumer.
+- `vendor/bin/mention-api-client generate` writes typed wrapper classes from that document: per Query a Parameters class,
+  a Row class and a typed method, the same for Routines. The output is deterministic, readonly classes are written for
+  apps on PHP 8.2 or higher and plain classes for older PHP, and `--check` fails when the committed classes no longer
+  match the document.
