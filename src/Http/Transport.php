@@ -14,6 +14,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
@@ -88,7 +89,7 @@ final class Transport
     /**
      * @param array<string, mixed>|null $body
      */
-    private function request(string $method, string $path, ?array $body): \Psr\Http\Message\RequestInterface
+    private function request(string $method, string $path, ?array $body): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $this->config->getBaseUrl() . $path)
             ->withHeader('Authorization', $this->authenticator->getAuthorizationHeader())
