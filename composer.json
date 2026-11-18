@@ -23,11 +23,12 @@
         "guzzlehttp/guzzle": "^7.4.5",
         "nyholm/psr7": "^1.8.2",
         "phpstan/phpstan": "^2.0",
-        "phpunit/phpunit": "^9.6 || ^10.5 || ^11.5 || ^12.0"
+        "phpunit/phpunit": "^9.6 || ^10.5 || ^11.5 || ^12.0",
+        "symfony/http-client": "^5.4 || ^6.4 || ^7.0"
     },
     "suggest": {
-        "guzzlehttp/guzzle": "A PSR-18 HTTP client (^7.0)",
-        "symfony/http-client": "A PSR-18 HTTP client (Psr18Client)",
+        "guzzlehttp/guzzle": "A PSR-18 HTTP client (^7.0); the configured timeout is applied to it automatically",
+        "symfony/http-client": "An HTTP client for the PSR-18 adapter SymfonyTimeoutClient (^5.4 || ^6.4 || ^7.0), which applies the configured timeout",
         "bannerstop/mention-api-client-bundle": "Symfony integration",
         "bannerstop/mention-api-client-laravel": "Laravel integration"
     },
