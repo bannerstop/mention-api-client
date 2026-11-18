@@ -16,14 +16,16 @@ final class ApiResponse
     /** @var array<string, mixed> */
     private array $document;
     private ?string $requestId;
+    private ?string $deprecation;
 
     /**
      * @param array<string, mixed> $document
      */
-    public function __construct(array $document, ?string $requestId)
+    public function __construct(array $document, ?string $requestId, ?string $deprecation = null)
     {
         $this->document = $document;
         $this->requestId = $requestId;
+        $this->deprecation = $deprecation;
     }
 
     /**
@@ -61,5 +63,13 @@ final class ApiResponse
     public function getRequestId(): ?string
     {
         return $this->requestId;
+    }
+
+    /**
+     * The value of the Deprecation header, when the Query is deprecated.
+     */
+    public function getDeprecation(): ?string
+    {
+        return $this->deprecation;
     }
 }

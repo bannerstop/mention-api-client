@@ -116,7 +116,9 @@ final class Transport
                 return new UnexpectedResponseException('The answer is not a JSON document.', $status, $requestId);
             }
 
-            return new ApiResponse($document, $requestId);
+            $deprecation = $response->getHeaderLine('Deprecation');
+
+            return new ApiResponse($document, $requestId, '' === $deprecation ? null : $deprecation);
         }
         if (ProblemMapper::isProblem($document)) {
             return ProblemMapper::exceptionFor($status, $document, $requestId, $this->retryAfter($response));

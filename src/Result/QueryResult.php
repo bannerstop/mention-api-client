@@ -21,9 +21,9 @@ final class QueryResult extends Result implements \Countable, \IteratorAggregate
     /**
      * @param list<array<string, mixed>> $rows
      */
-    public function __construct(array $rows, string $query, int $version, int $durationMs, ?string $requestId)
+    public function __construct(array $rows, string $query, int $version, int $durationMs, ?string $requestId, ?string $deprecation = null)
     {
-        parent::__construct($requestId);
+        parent::__construct($requestId, $deprecation);
         $this->rows = $rows;
         $this->query = $query;
         $this->version = $version;

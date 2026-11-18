@@ -8,6 +8,9 @@ use Bannerstop\MentionApi\Auth\ApiKeyAuthenticator;
 use Bannerstop\MentionApi\Http\NativeSleeper;
 use Bannerstop\MentionApi\Http\Sleeper;
 use Bannerstop\MentionApi\Http\Transport;
+use Bannerstop\MentionApi\Exception\MentionApiException;
+use Bannerstop\MentionApi\Result\QueryDescription;
+use Bannerstop\MentionApi\Result\QueryList;
 use Bannerstop\MentionApi\Result\QueryResult;
 use Bannerstop\MentionApi\Support\SystemClock;
 use Psr\Clock\ClockInterface;
@@ -56,7 +59,45 @@ final class MentionApiClient
         $response = $this->transport->send('POST', '/v2/queries/' . $name, $body, true);
         $meta = $response->getMeta();
 
-        return new QueryResult($response->getData(), $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
+        return new QueryResult($response->getData(), $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId(), $response->getDeprecation());
+    }
+
+    /**
+     * Lists the Queries your Consumer may call.
+     *
+     * @throws MentionApiException
+     */
+    public function listQueries(): QueryList
+    {
+        $response = $this->transport->send('GET', '/v2/queries', null, true);
+
+        return new QueryList($response->getData(), $response->getRequestId());
+    }
+
+    /**
+     * Describes a Query: its Parameters, result columns, databases and limits.
+     *
+     * @throws \InvalidArgumentException when the name cannot be valid
+     * @throws MentionApiException
+     */
+    public function describeQuery(string $name): QueryDescription
+    {
+        $this->assertName($name);
+        $response = $this->transport->send('GET', '/v2/queries/' . $name, null, true);
+        $document = $response->getDocument();
+
+        return new QueryDescription(
+            (string) ($document['name'] ?? $name),
+            (int) ($document['version'] ?? 0),
+            (string) ($document['description'] ?? ''),
+            $document['parameters'] ?? [],
+            $document['columns'] ?? [],
+            $document['databases'] ?? [],
+            (int) ($document['timeout_seconds'] ?? 0),
+            (int) ($document['row_limit'] ?? 0),
+            $response->getRequestId(),
+            $response->getDeprecation(),
+        );
     }
 
     private function assertName(string $name): void
