@@ -144,7 +144,7 @@ strings, so money keeps its precision.
 A second Mention database can be named as the third argument:
 
 ```php
-$mention->run('getOrderData', ['orderId' => 12345], 'bannerstop_gmbh');
+$mention->run('getOrderData', ['orderId' => 12345], 'example_db');
 ```
 
 `QueryResult` also has `getQuery()`, `getVersion()` and `getDurationMs()`.
@@ -303,7 +303,7 @@ class MentionApiClientFactory
 ```
 
 ```xml
-<!-- etc/di.xml: any PSR-18 client; this one is Guzzle 6 through its adapter (php-http/guzzle6-adapter) -->
+<!-- etc/di.xml, a sketch: any PSR-18 client will do; this one is Guzzle 6 through php-http/guzzle6-adapter -->
 <type name="Vendor\Module\Model\MentionApiClientFactory">
     <arguments>
         <argument name="http" xsi:type="object">Vendor\Module\Model\MentionHttpClient</argument>

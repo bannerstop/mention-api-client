@@ -36,9 +36,9 @@ final class RunQueryTest extends ClientTestCase
     {
         $this->http->enqueue(Answers::rows([]));
 
-        $this->client()->run('getThings', ['limit' => 5], 'bannerstop_gmbh');
+        $this->client()->run('getThings', ['limit' => 5], 'example_db');
 
-        self::assertSame(['parameters' => ['limit' => 5], 'database' => 'bannerstop_gmbh'], $this->http->lastJsonBody());
+        self::assertSame(['parameters' => ['limit' => 5], 'database' => 'example_db'], $this->http->lastJsonBody());
     }
 
     public function testNoParametersAreSentAsAnEmptyObject(): void
