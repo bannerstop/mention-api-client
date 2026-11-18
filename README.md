@@ -324,6 +324,8 @@ class MentionApiClientFactory
 </virtualType>
 ```
 
+The example needs `nyholm/psr7` (PSR-17 factories) and a PSR-18 client such as `php-http/guzzle6-adapter`.
+
 Use an API key in a web request: a web request is its own PHP process, and client
 credentials without a cache would fetch a token every time. For client credentials,
 pass a PSR-16 cache as the fifth argument.
