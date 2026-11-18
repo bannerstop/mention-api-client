@@ -4,7 +4,7 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the package follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - 2026-11-18
 
 ### Added
 
@@ -25,3 +25,5 @@ All notable changes to this package are documented here. The format follows
   a Row class and a typed method, the same for Routines. The output is deterministic, readonly classes are written for
   apps on PHP 8.2 or higher and plain classes for older PHP, and `--check` fails when the committed classes no longer
   match the document.
+
+[1.0.0]: https://github.com/bannerstop/mention-api-client/releases/tag/v1.0.0
