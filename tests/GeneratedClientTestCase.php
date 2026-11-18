@@ -104,4 +104,16 @@ abstract class GeneratedClientTestCase extends ClientTestCase
             self::assertCount(1, $this->http->requests);
         }
     }
+
+    public function testAQueryWithoutRequiredParametersCanBeCalledWithoutThem(): void
+    {
+        $code = new GeneratedCode(GeneratedCode::fixtureDocument(), $this->target());
+        $queriesClass = $code->class('Queries');
+        $this->http->enqueue(Answers::rows([['widgetId' => 1, 'label' => 'a']], 'listWidgets'));
+
+        $result = (new $queriesClass($this->client()))->listWidgets();
+
+        self::assertSame('{"parameters":{}}', (string) $this->http->lastRequest()->getBody());
+        self::assertSame(1, $result->getRows()[0]->widgetId);
+    }
 }
