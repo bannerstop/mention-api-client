@@ -67,7 +67,7 @@ final class MentionApiClient
         $response = $this->transport->send('POST', '/v2/queries/' . $name, $this->body($parameters, $database), true);
         $meta = $response->getMeta();
 
-        return new QueryResult($response->getData(), $meta['query'] ?? $name, (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId(), $response->getDeprecation());
+        return new QueryResult($response->getItems(), (string) ($meta['query'] ?? $name), (int) ($meta['version'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId(), $response->getDeprecation());
     }
 
     /**
@@ -79,7 +79,7 @@ final class MentionApiClient
     {
         $response = $this->transport->send('GET', '/v2/queries', null, true);
 
-        return new QueryList($response->getData(), $response->getRequestId());
+        return new QueryList($response->getItems(), $response->getRequestId());
     }
 
     /**
@@ -117,7 +117,7 @@ final class MentionApiClient
     {
         $response = $this->transport->send('GET', '/v2/routines');
 
-        return new RoutineList($response->getData(), $response->getRequestId());
+        return new RoutineList($response->getItems(), $response->getRequestId());
     }
 
     /**
@@ -137,7 +137,7 @@ final class MentionApiClient
         $data = $response->getData();
         $meta = $response->getMeta();
 
-        return new RoutineResult($meta['routine'] ?? $name, (string) ($data['action'] ?? ''), (int) ($meta['rows'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
+        return new RoutineResult((string) ($meta['routine'] ?? $name), (string) ($data['action'] ?? ''), (int) ($meta['rows'] ?? 0), (int) ($meta['duration_ms'] ?? 0), $response->getRequestId());
     }
 
     private function assertName(string $name): void

@@ -64,6 +64,9 @@ final class QueryResult extends Result implements \Countable, \IteratorAggregate
         return \count($this->rows);
     }
 
+    /**
+     * @return \ArrayIterator<int, array<string, mixed>>
+     */
     public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->rows);

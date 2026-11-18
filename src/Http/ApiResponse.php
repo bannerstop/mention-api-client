@@ -53,6 +53,26 @@ final class ApiResponse
     }
 
     /**
+     * The "data" member of the answer, which must be a list of objects.
+     *
+     * @return list<array<string, mixed>>
+     *
+     * @throws UnexpectedResponseException when it is not
+     */
+    public function getItems(): array
+    {
+        $items = [];
+        foreach ($this->getData() as $item) {
+            if (!\is_array($item)) {
+                throw new UnexpectedResponseException('The "data" member of the answer is not a list of objects.', 200, $this->requestId);
+            }
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getMeta(): array

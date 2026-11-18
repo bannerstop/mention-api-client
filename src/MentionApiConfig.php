@@ -23,7 +23,22 @@ final class MentionApiConfig
 
     private function __construct(string $baseUrl)
     {
+        self::assertHttpUrl($baseUrl, 'The base URL');
         $this->baseUrl = rtrim($baseUrl, '/');
+    }
+
+    private static function assertHttpUrl(string $url, string $what): void
+    {
+        if (1 !== preg_match('#^https?://[^/\s]#i', $url)) {
+            throw new \InvalidArgumentException($what . ' must be an http(s) URL.');
+        }
+    }
+
+    private static function assertNotEmpty(string $value, string $what): void
+    {
+        if ('' === $value) {
+            throw new \InvalidArgumentException($what . ' must not be empty.');
+        }
     }
 
     /**
@@ -33,6 +48,7 @@ final class MentionApiConfig
      */
     public static function forApiKey(string $baseUrl, string $apiKey): self
     {
+        self::assertNotEmpty($apiKey, 'The API key');
         $config = new self($baseUrl);
         $config->apiKey = $apiKey;
 
@@ -49,6 +65,9 @@ final class MentionApiConfig
      */
     public static function forClientCredentials(string $baseUrl, string $tokenUrl, string $clientId, string $clientSecret, string $scope = self::DEFAULT_SCOPE): self
     {
+        self::assertHttpUrl($tokenUrl, 'The token URL');
+        self::assertNotEmpty($clientId, 'The client id');
+        self::assertNotEmpty($clientSecret, 'The client secret');
         $config = new self($baseUrl);
         $config->tokenUrl = $tokenUrl;
         $config->clientId = $clientId;

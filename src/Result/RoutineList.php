@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi\Result;
 
 /**
- * The Routines your Consumer may call, each with its Parameters (name, type and, for strings, an optional format and maximum length).
+ * The Routines your Consumer may call; each entry has the keys name, version, description and parameters (each with name,
+ * type and, for strings, an optional format and max_length).
  *
- * @implements \IteratorAggregate<int, array{name: string, version: int, description: string, parameters: list<array<string, mixed>>}>
+ * @implements \IteratorAggregate<int, array<string, mixed>>
  */
 final class RoutineList extends Result implements \Countable, \IteratorAggregate
 {
-    /** @var list<array{name: string, version: int, description: string, parameters: list<array<string, mixed>>}> */
+    /** @var list<array<string, mixed>> */
     private array $routines;
 
     /**
-     * @param list<array{name: string, version: int, description: string, parameters: list<array<string, mixed>>}> $routines
+     * @param list<array<string, mixed>> $routines
      */
     public function __construct(array $routines, ?string $requestId)
     {
@@ -24,7 +25,7 @@ final class RoutineList extends Result implements \Countable, \IteratorAggregate
     }
 
     /**
-     * @return list<array{name: string, version: int, description: string, parameters: list<array<string, mixed>>}>
+     * @return list<array<string, mixed>>
      */
     public function getRoutines(): array
     {
@@ -44,6 +45,9 @@ final class RoutineList extends Result implements \Countable, \IteratorAggregate
         return \count($this->routines);
     }
 
+    /**
+     * @return \ArrayIterator<int, array<string, mixed>>
+     */
     public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->routines);

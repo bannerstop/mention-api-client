@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi\Result;
 
 /**
- * The Queries your Consumer may call.
+ * The Queries your Consumer may call; each entry has the keys name, version and description.
  *
- * @implements \IteratorAggregate<int, array{name: string, version: int, description: string}>
+ * @implements \IteratorAggregate<int, array<string, mixed>>
  */
 final class QueryList extends Result implements \Countable, \IteratorAggregate
 {
-    /** @var list<array{name: string, version: int, description: string}> */
+    /** @var list<array<string, mixed>> */
     private array $queries;
 
     /**
-     * @param list<array{name: string, version: int, description: string}> $queries
+     * @param list<array<string, mixed>> $queries
      */
     public function __construct(array $queries, ?string $requestId)
     {
@@ -24,7 +24,7 @@ final class QueryList extends Result implements \Countable, \IteratorAggregate
     }
 
     /**
-     * @return list<array{name: string, version: int, description: string}>
+     * @return list<array<string, mixed>>
      */
     public function getQueries(): array
     {
@@ -44,6 +44,9 @@ final class QueryList extends Result implements \Countable, \IteratorAggregate
         return \count($this->queries);
     }
 
+    /**
+     * @return \ArrayIterator<int, array<string, mixed>>
+     */
     public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->queries);
