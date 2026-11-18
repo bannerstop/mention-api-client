@@ -12,7 +12,11 @@ All notable changes to this package are documented here. The format follows
 - Authentication with an API key or with Keycloak client credentials, with the access token cached in a PSR-16 cache
   and renewed shortly before it expires.
 - One exception class per problem code, all below `MentionApiException`, with the request id on every result and exception.
-- A timeout setting (30 seconds by default) for HTTP clients that implement `TimeoutAware`.
+- A timeout setting (30 seconds by default) for HTTP clients that implement `TimeoutAware`. A Guzzle 7 client passed to
+  `MentionApiClient` gets it automatically (`GuzzleTimeoutClient`), and `SymfonyTimeoutClient` applies it to Symfony
+  HttpClient. Guzzle and Symfony HttpClient stay optional.
+- With client credentials, a call that the server answers with 401 drops the cached token, fetches a new one and is sent
+  again once, for Queries and Routines. This does not use up the retries of a Query.
 - Retries for Query calls (up to 2 times on 429, 503 and connection errors, honouring `Retry-After` up to 10 seconds);
   Routines are never retried.
 - Support for PHP 7.4 to 8.5.
