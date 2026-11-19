@@ -19,10 +19,10 @@ every caller would otherwise write again:
 It only depends on PSR interfaces (PSR-18 HTTP client, PSR-17 factories, PSR-16
 cache, PSR-20 clock), so it runs with any HTTP client and inside any framework.
 
-Integrations on top of this package (coming soon):
+Integrations on top of this package:
 
-- Symfony: `bannerstop/mention-api-client-bundle`
-- Laravel: `bannerstop/mention-api-client-laravel`
+- Symfony: [`bannerstop/mention-api-client-bundle`](https://github.com/bannerstop/mention-api-client-bundle)
+- Laravel: [`bannerstop/mention-api-client-laravel`](https://github.com/bannerstop/mention-api-client-laravel)
 
 ## Versions
 
