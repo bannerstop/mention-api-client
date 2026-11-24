@@ -4,6 +4,22 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the package follows
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - Unreleased
+
+### Added
+
+- Support for PHP 7.2.5 and 7.3 (PHP 7.4 to 8.5 as before). The library no longer uses typed properties or any other
+  syntax newer than PHP 7.2; the public API and the behaviour do not change.
+- A PHP target `7.2` for the generator: plain classes whose properties are typed by their `@var` docblock only.
+  It is chosen when the lowest PHP of `require.php` in your `composer.json` is below 7.4, or with `--php=7.2`. The
+  targets `7.4` and `8.2` write the same code as before.
+
+### Changed
+
+- `require.php` is `^7.2.5 || ^8.0`. The generator itself runs on PHP 7.2 to 8.5.
+- A `composer.json` that requires a lowest PHP below 7.4 (for example `>=7.1`) now gets the `7.2` target instead of `7.4`.
+- The tests run on PHP 7.2 and 7.3 as well, with PHPUnit 8.5 up to 12.
+
 ## [1.0.0] - 2026-11-18
 
 ### Added
@@ -26,4 +42,5 @@ All notable changes to this package are documented here. The format follows
   apps on PHP 8.2 or higher and plain classes for older PHP, and `--check` fails when the committed classes no longer
   match the document.
 
+[1.1.0]: https://github.com/bannerstop/mention-api-client/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/bannerstop/mention-api-client/releases/tag/v1.0.0

@@ -13,8 +13,15 @@ final class PhpTargetTest extends TestCase
     public function testTheLowestPhpTheAppSupportsDecidesTheTarget(): void
     {
         $expected = [
+            '^7.2.5 || ^8.0' => '7.2',
+            '^7.2' => '7.2',
+            '>=7.2' => '7.2',
+            '7.2.*' => '7.2',
+            '^7.3' => '7.2',
+            '~7.3.0' => '7.2',
+            '>=7.1' => '7.2',
+            '>=7.3 <8.0 || ^8.2' => '7.2',
             '^7.4 || ^8.0' => '7.4',
-            '>=7.1' => '7.4',
             '^8.1' => '7.4',
             '^8' => '7.4',
             '8.1.*' => '7.4',
@@ -55,6 +62,8 @@ final class PhpTargetTest extends TestCase
     {
         self::assertTrue(PhpTarget::fromString('8.2')->usesReadonlyClasses());
         self::assertFalse(PhpTarget::fromString('7.4')->usesReadonlyClasses());
+        self::assertFalse(PhpTarget::fromString('7.2')->usesReadonlyClasses());
+        self::assertSame('7.2', (string) PhpTarget::fromString('7.2'));
     }
 
     public function testAnUnknownTargetIsRefused(): void

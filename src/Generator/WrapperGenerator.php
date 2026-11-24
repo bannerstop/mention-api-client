@@ -221,6 +221,9 @@ final class WrapperGenerator
             $arguments .= '            ' . (null === $type ? $access . ' ?? null' : 'isset(' . $access . ') ? (' . $type[1] . ') ' . $access . ' : null') . ",\n";
         }
         $method = "    /**\n     * Reads a row of the answer; a missing column is null and a column the Query does not declare is ignored.\n     *\n     * @param array<string, mixed> \$row\n     */\n    public static function fromArray(array \$row): self\n    {\n";
+        if (!$target->allowsTrailingCommaInCalls()) {
+            $arguments = rtrim($arguments, ",\n") . "\n";
+        }
         $method .= [] === $fields ? "        return new self();\n" : "        return new self(\n" . $arguments . "        );\n";
         $method .= "    }\n";
 
@@ -258,8 +261,8 @@ final class WrapperGenerator
             }
         } else {
             foreach ($fields as $field) {
-                $code .= $this->propertyDocblock($field);
-                $code .= '    public ' . ('' === $field->getDeclaredType() ? '' : $field->getDeclaredType() . ' ') . '$' . $field->getName() . ";\n\n";
+                $code .= $this->propertyDocblock($field, $target);
+                $code .= '    public ' . ('' === $field->getDeclaredType() || !$target->usesTypedProperties() ? '' : $field->getDeclaredType() . ' ') . '$' . $field->getName() . ";\n\n";
             }
             $code .= $constructorDoc;
             $code .= '    public function __construct(' . implode(', ', array_map(function (Field $field): string {
@@ -284,14 +287,17 @@ final class WrapperGenerator
         return ('' === $type ? '' : $type . ' ') . '$' . $field->getName() . ($field->isOptional() ? ' = null' : '');
     }
 
-    private function propertyDocblock(Field $field): string
+    /**
+     * Without typed properties (PHP 7.2) the docblock is the only place that says what the property holds.
+     */
+    private function propertyDocblock(Field $field, PhpTarget $target): string
     {
         $lines = [];
         if ('' !== $field->getDescription()) {
             $lines[] = $this->text($field->getDescription());
             $lines[] = '';
         }
-        if ($field->needsDocType()) {
+        if ($field->needsDocType() || !$target->usesTypedProperties()) {
             $lines[] = '@var ' . $field->getDocType();
         }
         $lines[] = '@readonly';

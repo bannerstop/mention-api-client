@@ -31,7 +31,7 @@ Options:
   --check               write nothing; exit 1 when the files differ from what would be generated
   --source=<file>       read the OpenAPI document from this file instead of fetching it
   --client=<file>       a PHP file that returns your configured MentionApiClient, used to fetch the document
-  --php=<7.4|8.2>       the PHP the code is written for; by default decided by "require.php" of composer.json
+  --php=<7.2|7.4|8.2>   the PHP the code is written for; by default decided by "require.php" of composer.json
   --composer=<file>     the composer.json to read (default: composer.json in the current directory)
   --help                show this text
 
@@ -202,7 +202,7 @@ TEXT;
         $file = $this->path(isset($options['composer']) ? (string) $options['composer'] : 'composer.json', $cwd);
         $contents = is_file($file) ? file_get_contents($file) : false;
         if (false === $contents) {
-            throw new GeneratorException(sprintf('Cannot read %s to find the PHP version of your app: pass --php=7.4 or --php=8.2, or --composer=<file>.', $file));
+            throw new GeneratorException(sprintf('Cannot read %s to find the PHP version of your app: pass --php=7.2, --php=7.4 or --php=8.2, or --composer=<file>.', $file));
         }
         $composer = json_decode($contents, true);
         if (!\is_array($composer)) {
