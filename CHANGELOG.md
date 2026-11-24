@@ -4,7 +4,7 @@ All notable changes to this package are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the package follows
 [Semantic Versioning](https://semver.org/).
 
-## [1.1.0] - Unreleased
+## [1.1.0] - 2026-11-24
 
 ### Added
 
@@ -42,5 +42,5 @@ All notable changes to this package are documented here. The format follows
   apps on PHP 8.2 or higher and plain classes for older PHP, and `--check` fails when the committed classes no longer
   match the document.
 
-[1.1.0]: https://github.com/bannerstop/mention-api-client/compare/v1.0.0...HEAD
+[1.1.0]: https://github.com/bannerstop/mention-api-client/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/bannerstop/mention-api-client/releases/tag/v1.0.0
