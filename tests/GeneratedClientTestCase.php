@@ -79,7 +79,7 @@ abstract class GeneratedClientTestCase extends ClientTestCase
         $this->http->enqueue(Answers::json(
             ['data' => ['action' => 'updated'], 'meta' => ['routine' => 'setWidgetLabel', 'rows' => 1, 'duration_ms' => 4, 'request_id' => 'req_r']],
             200,
-            ['X-Request-Id' => 'req_r'],
+            ['X-Request-Id' => 'req_r']
         ));
 
         $result = (new $routinesClass($this->client()))->setWidgetLabel(new $parametersClass(4, 'Blue', '0192a3b4-1111-7222-8333-444455556666'));

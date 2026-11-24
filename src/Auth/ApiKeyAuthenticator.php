@@ -9,7 +9,8 @@ namespace Bannerstop\MentionApi\Auth;
  */
 final class ApiKeyAuthenticator implements Authenticator
 {
-    private string $apiKey;
+    /** @var string */
+    private $apiKey;
 
     public function __construct(string $apiKey)
     {

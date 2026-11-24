@@ -9,7 +9,8 @@ namespace Bannerstop\MentionApi\Exception;
  */
 final class UnexpectedResponseException extends MentionApiException
 {
-    private int $status;
+    /** @var int */
+    private $status;
 
     public function __construct(string $message, int $status, ?string $requestId = null)
     {

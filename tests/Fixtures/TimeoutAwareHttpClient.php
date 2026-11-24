@@ -15,10 +15,12 @@ use Psr\Http\Message\ResponseInterface;
 final class TimeoutAwareHttpClient implements ClientInterface, TimeoutAware
 {
     /** @var list<float|null> */
-    public array $timeouts = [];
+    public $timeouts = [];
 
-    private ClientInterface $inner;
-    private ?float $timeout;
+    /** @var ClientInterface */
+    private $inner;
+    /** @var float|null */
+    private $timeout;
 
     public function __construct(ClientInterface $inner, ?float $timeout = null)
     {

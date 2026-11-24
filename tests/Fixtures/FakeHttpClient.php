@@ -15,10 +15,10 @@ use Psr\Http\Message\ResponseInterface;
 final class FakeHttpClient implements ClientInterface
 {
     /** @var list<ResponseInterface|\Throwable> */
-    private array $queue = [];
+    private $queue = [];
 
     /** @var list<RequestInterface> */
-    public array $requests = [];
+    public $requests = [];
 
     /**
      * @param ResponseInterface|\Throwable $answer
@@ -54,6 +54,6 @@ final class FakeHttpClient implements ClientInterface
      */
     public function lastJsonBody(): array
     {
-        return json_decode((string) $this->lastRequest()->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode((string) $this->lastRequest()->getBody(), true);
     }
 }

@@ -33,7 +33,8 @@ final class MentionApiClient
 {
     private const NAME_PATTERN = '/^[A-Za-z][A-Za-z0-9]{0,127}$/';
 
-    private Transport $transport;
+    /** @var Transport */
+    private $transport;
 
     public function __construct(
         MentionApiConfig $config,
@@ -105,7 +106,7 @@ final class MentionApiClient
             (int) ($document['timeout_seconds'] ?? 0),
             (int) ($document['row_limit'] ?? 0),
             $response->getRequestId(),
-            $response->getDeprecation(),
+            $response->getDeprecation()
         );
     }
 

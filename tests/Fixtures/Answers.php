@@ -18,7 +18,7 @@ final class Answers
      */
     public static function json(array $body, int $status = 200, array $headers = []): ResponseInterface
     {
-        return new Response($status, $headers + ['Content-Type' => 'application/json'], json_encode($body, JSON_THROW_ON_ERROR));
+        return new Response($status, $headers + ['Content-Type' => 'application/json'], json_encode($body));
     }
 
     /**
@@ -29,7 +29,7 @@ final class Answers
         return self::json(
             ['data' => $rows, 'meta' => ['query' => $query, 'version' => 3, 'rows' => \count($rows), 'duration_ms' => 12, 'request_id' => $requestId]],
             200,
-            $headers + ['X-Request-Id' => $requestId],
+            $headers + ['X-Request-Id' => $requestId]
         );
     }
 
@@ -47,6 +47,6 @@ final class Answers
             'request_id' => $requestId,
         ] + $extra;
 
-        return new Response($status, $headers + ['Content-Type' => 'application/problem+json', 'X-Request-Id' => $requestId], json_encode($body, JSON_THROW_ON_ERROR));
+        return new Response($status, $headers + ['Content-Type' => 'application/problem+json', 'X-Request-Id' => $requestId], json_encode($body));
     }
 }

@@ -13,12 +13,14 @@ use Bannerstop\MentionApi\Generator\WrapperGenerator;
  */
 final class GeneratedCode
 {
-    private static int $counter = 0;
+    /** @var int */
+    private static $counter = 0;
 
-    private string $namespace;
+    /** @var string */
+    private $namespace;
 
     /** @var array<string, string> */
-    private array $files;
+    private $files;
 
     /**
      * @param array<string, mixed> $document
@@ -44,7 +46,7 @@ final class GeneratedCode
 
     public static function fixtureDocument(): array
     {
-        return json_decode((string) file_get_contents(__DIR__ . '/Fixtures/openapi.json'), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode((string) file_get_contents(__DIR__ . '/Fixtures/openapi.json'), true);
     }
 
     /**

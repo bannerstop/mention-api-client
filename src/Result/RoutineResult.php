@@ -9,10 +9,14 @@ namespace Bannerstop\MentionApi\Result;
  */
 final class RoutineResult extends Result
 {
-    private string $routine;
-    private string $action;
-    private int $rowsWritten;
-    private int $durationMs;
+    /** @var string */
+    private $routine;
+    /** @var string */
+    private $action;
+    /** @var int */
+    private $rowsWritten;
+    /** @var int */
+    private $durationMs;
 
     public function __construct(string $routine, string $action, int $rowsWritten, int $durationMs, ?string $requestId)
     {

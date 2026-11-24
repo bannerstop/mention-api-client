@@ -13,13 +13,20 @@ final class MentionApiConfig
     public const DEFAULT_TIMEOUT = 30.0;
     public const DEFAULT_SCOPE = 'mention-api';
 
-    private string $baseUrl;
-    private float $timeout = self::DEFAULT_TIMEOUT;
-    private ?string $apiKey = null;
-    private ?string $tokenUrl = null;
-    private ?string $clientId = null;
-    private ?string $clientSecret = null;
-    private string $scope = self::DEFAULT_SCOPE;
+    /** @var string */
+    private $baseUrl;
+    /** @var float */
+    private $timeout = self::DEFAULT_TIMEOUT;
+    /** @var string|null */
+    private $apiKey = null;
+    /** @var string|null */
+    private $tokenUrl = null;
+    /** @var string|null */
+    private $clientId = null;
+    /** @var string|null */
+    private $clientSecret = null;
+    /** @var string */
+    private $scope = self::DEFAULT_SCOPE;
 
     private function __construct(string $baseUrl)
     {

@@ -9,8 +9,10 @@ namespace Bannerstop\MentionApi\Result;
  */
 abstract class Result
 {
-    private ?string $requestId;
-    private ?string $deprecation;
+    /** @var string|null */
+    private $requestId;
+    /** @var string|null */
+    private $deprecation;
 
     public function __construct(?string $requestId, ?string $deprecation = null)
     {

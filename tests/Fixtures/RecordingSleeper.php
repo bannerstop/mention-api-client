@@ -9,7 +9,7 @@ use Bannerstop\MentionApi\Http\Sleeper;
 final class RecordingSleeper implements Sleeper
 {
     /** @var list<float> */
-    public array $sleeps = [];
+    public $sleeps = [];
 
     public function sleep(float $seconds): void
     {

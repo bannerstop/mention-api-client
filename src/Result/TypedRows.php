@@ -14,9 +14,10 @@ namespace Bannerstop\MentionApi\Result;
  */
 final class TypedRows implements \Countable, \IteratorAggregate
 {
-    private QueryResult $result;
+    /** @var QueryResult */
+    private $result;
     /** @var list<T> */
-    private array $rows;
+    private $rows;
 
     /**
      * @param list<T> $rows

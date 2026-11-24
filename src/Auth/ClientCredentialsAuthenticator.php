@@ -23,17 +23,28 @@ final class ClientCredentialsAuthenticator implements Authenticator
     /** Seconds before the expiry at which a token is no longer used. */
     private const MARGIN = 30;
 
-    private string $tokenUrl;
-    private string $clientId;
-    private string $clientSecret;
-    private string $scope;
-    private ClientInterface $http;
-    private RequestFactoryInterface $requestFactory;
-    private StreamFactoryInterface $streamFactory;
-    private ?CacheInterface $cache;
-    private ClockInterface $clock;
-    private ?string $token = null;
-    private int $tokenExpiresAt = 0;
+    /** @var string */
+    private $tokenUrl;
+    /** @var string */
+    private $clientId;
+    /** @var string */
+    private $clientSecret;
+    /** @var string */
+    private $scope;
+    /** @var ClientInterface */
+    private $http;
+    /** @var RequestFactoryInterface */
+    private $requestFactory;
+    /** @var StreamFactoryInterface */
+    private $streamFactory;
+    /** @var CacheInterface|null */
+    private $cache;
+    /** @var ClockInterface */
+    private $clock;
+    /** @var string|null */
+    private $token = null;
+    /** @var int */
+    private $tokenExpiresAt = 0;
 
     public function __construct(
         string $tokenUrl,

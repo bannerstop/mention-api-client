@@ -13,7 +13,7 @@ namespace Bannerstop\MentionApi\Result;
 final class RoutineList extends Result implements \Countable, \IteratorAggregate
 {
     /** @var list<array<string, mixed>> */
-    private array $routines;
+    private $routines;
 
     /**
      * @param list<array<string, mixed>> $routines

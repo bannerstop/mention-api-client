@@ -10,7 +10,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 
 // A client for the console tests: it answers with the sample document and records the requests in $GLOBALS.
 $http = new FakeHttpClient();
-$http->enqueue(Answers::json(json_decode((string) file_get_contents(__DIR__ . '/openapi.json'), true, 512, JSON_THROW_ON_ERROR)));
+$http->enqueue(Answers::json(json_decode((string) file_get_contents(__DIR__ . '/openapi.json'), true)));
 $GLOBALS['mention_api_client_test_http'] = $http;
 $factory = new Psr17Factory();
 

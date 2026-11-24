@@ -18,10 +18,14 @@ abstract class ClientTestCase extends TestCase
 {
     protected const BASE_URL = 'https://mention-api.example.com';
 
-    protected FakeHttpClient $http;
-    protected ArrayCache $cache;
-    protected FrozenClock $clock;
-    protected RecordingSleeper $sleeper;
+    /** @var FakeHttpClient */
+    protected $http;
+    /** @var ArrayCache */
+    protected $cache;
+    /** @var FrozenClock */
+    protected $clock;
+    /** @var RecordingSleeper */
+    protected $sleeper;
 
     protected function setUp(): void
     {
@@ -42,7 +46,7 @@ abstract class ClientTestCase extends TestCase
             $factory,
             $this->cache,
             $this->clock,
-            $this->sleeper,
+            $this->sleeper
         );
     }
 }

@@ -180,7 +180,7 @@ final class TokenRefreshTest extends ClientTestCase
             ->enqueue(Answers::rows([]));
         $client = $this->client(self::credentials());
         $client->run('getThings');
-        $this->cache->set((string) array_key_first($this->cache->entries), ['access_token' => 'token-2', 'expires_at' => $this->clock->now()->getTimestamp() + 200]);
+        $this->cache->set((string) key($this->cache->entries), ['access_token' => 'token-2', 'expires_at' => $this->clock->now()->getTimestamp() + 200]);
 
         $client->run('getThings');
 

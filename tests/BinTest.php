@@ -11,7 +11,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class BinTest extends TestCase
 {
-    private string $work;
+    /** @var string */
+    private $work;
 
     protected function setUp(): void
     {

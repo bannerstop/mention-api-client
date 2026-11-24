@@ -1,5 +1,8 @@
 parameters:
     level: 8
+    phpVersion:
+        min: 70205
+        max: 80500
     paths:
         - src
     ignoreErrors:
@@ -10,3 +13,12 @@ parameters:
                 - instanceof.alwaysTrue
                 - booleanAnd.alwaysTrue
             path: src/Generator/Console/EnvironmentClient.php
+        # Analysed as PHP 7.2, the native "mixed" of psr/simple-cache 3 is read as a class named mixed (the type exists
+        # from PHP 8.0), so what the cache returns looks like it can never be an array. It is only so under that setting.
+        -
+            identifiers:
+                - function.impossibleType
+                - isset.offset
+                - booleanAnd.alwaysFalse
+                - argument.type
+            path: src/Auth/ClientCredentialsAuthenticator.php

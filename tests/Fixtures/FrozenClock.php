@@ -8,7 +8,8 @@ use Psr\Clock\ClockInterface;
 
 final class FrozenClock implements ClockInterface
 {
-    private \DateTimeImmutable $now;
+    /** @var \DateTimeImmutable */
+    private $now;
 
     public function __construct(string $now = '2026-11-18 12:00:00 UTC')
     {

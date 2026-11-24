@@ -20,7 +20,7 @@ final class RoutineTest extends ClientTestCase
         return Answers::json(
             ['data' => ['action' => $action], 'meta' => ['routine' => 'setContactEmail', 'rows' => 'unchanged' === $action ? 0 : 1, 'duration_ms' => 34, 'request_id' => $requestId]],
             200,
-            ['X-Request-Id' => $requestId],
+            ['X-Request-Id' => $requestId]
         );
     }
 
@@ -34,7 +34,7 @@ final class RoutineTest extends ClientTestCase
                 'parameters' => [['name' => 'contactId', 'type' => 'int'], ['name' => 'email', 'type' => 'string', 'format' => 'email', 'max_length' => 254]],
             ]]],
             200,
-            ['X-Request-Id' => 'req_routines'],
+            ['X-Request-Id' => 'req_routines']
         ));
 
         $list = $this->client()->listRoutines();
