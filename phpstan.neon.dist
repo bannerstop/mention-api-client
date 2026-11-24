@@ -1,5 +1,8 @@
 parameters:
     level: 8
+    phpVersion:
+        min: 70205
+        max: 80500
     paths:
         - src
     ignoreErrors:

@@ -10,7 +10,8 @@ use PHPUnit\Framework\TestCase;
 
 final class OutputDirectoryTest extends TestCase
 {
-    private string $directory;
+    /** @var string */
+    private $directory;
 
     protected function setUp(): void
     {
@@ -59,8 +60,8 @@ final class OutputDirectoryTest extends TestCase
 
         $output->write(['Queries.php' => $this->generated()]);
 
-        self::assertFileDoesNotExist($this->directory . '/Query/GoneRow.php');
-        self::assertFileDoesNotExist($this->directory . '/Routine/GoneParameters.php');
+        self::assertFalse(file_exists($this->directory . '/Query/GoneRow.php'));
+        self::assertFalse(file_exists($this->directory . '/Routine/GoneParameters.php'));
         self::assertFileExists($this->directory . '/Queries.php');
     }
 
@@ -113,7 +114,7 @@ final class OutputDirectoryTest extends TestCase
     {
         (new OutputDirectory($this->directory))->drift(['Queries.php' => $this->generated()]);
 
-        self::assertDirectoryDoesNotExist($this->directory);
+        self::assertFalse(is_dir($this->directory));
     }
 
     public function testWriteRefusesToOverwriteAFileThatIsNotGenerated(): void
@@ -129,7 +130,7 @@ final class OutputDirectoryTest extends TestCase
             self::assertStringContainsString('Query/FooRow.php', $e->getMessage());
         }
         self::assertSame("<?php // written by hand\n", file_get_contents($this->directory . '/Query/FooRow.php'));
-        self::assertFileDoesNotExist($this->directory . '/Queries.php', 'nothing is written when one file is refused');
+        self::assertFalse(file_exists($this->directory . '/Queries.php'), 'nothing is written when one file is refused');
     }
 
     public function testStaleFilesAreFoundInADirectoryWithBracketsInItsPath(): void

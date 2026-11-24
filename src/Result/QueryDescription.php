@@ -9,17 +9,22 @@ namespace Bannerstop\MentionApi\Result;
  */
 final class QueryDescription extends Result
 {
-    private string $name;
-    private int $version;
-    private string $description;
+    /** @var string */
+    private $name;
+    /** @var int */
+    private $version;
+    /** @var string */
+    private $description;
     /** @var list<array{name: string, type: string}> */
-    private array $parameters;
+    private $parameters;
     /** @var list<array{name: string, type: string, description?: string}> */
-    private array $columns;
+    private $columns;
     /** @var list<string> */
-    private array $databases;
-    private int $timeoutSeconds;
-    private int $rowLimit;
+    private $databases;
+    /** @var int */
+    private $timeoutSeconds;
+    /** @var int */
+    private $rowLimit;
 
     /**
      * @param list<array{name: string, type: string}>                      $parameters

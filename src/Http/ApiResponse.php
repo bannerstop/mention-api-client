@@ -14,9 +14,11 @@ use Bannerstop\MentionApi\Exception\UnexpectedResponseException;
 final class ApiResponse
 {
     /** @var array<string, mixed> */
-    private array $document;
-    private ?string $requestId;
-    private ?string $deprecation;
+    private $document;
+    /** @var string|null */
+    private $requestId;
+    /** @var string|null */
+    private $deprecation;
 
     /**
      * @param array<string, mixed> $document

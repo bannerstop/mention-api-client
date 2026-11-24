@@ -21,11 +21,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final class SymfonyTimeoutClient implements ClientInterface, TimeoutAware
 {
-    private HttpClientInterface $client;
-    private ?float $timeout;
-    private ?ResponseFactoryInterface $responseFactory;
-    private ?StreamFactoryInterface $streamFactory;
-    private ?Psr18Client $psr18 = null;
+    /** @var HttpClientInterface */
+    private $client;
+    /** @var float|null */
+    private $timeout;
+    /** @var ResponseFactoryInterface|null */
+    private $responseFactory;
+    /** @var StreamFactoryInterface|null */
+    private $streamFactory;
+    /** @var Psr18Client|null */
+    private $psr18 = null;
 
     /**
      * @param ResponseFactoryInterface|null $responseFactory PSR-17 factories for the answers, found by Psr18Client when left out

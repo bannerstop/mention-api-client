@@ -14,7 +14,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 final class SymfonyTimeoutClientTest extends ClientTestCase
 {
     /** @var list<array<string, mixed>> the options of every request that reached the Symfony client */
-    private array $options = [];
+    private $options = [];
 
     /**
      * A real Symfony MockHttpClient that answers with the given responses and records the options.
@@ -40,7 +40,7 @@ final class SymfonyTimeoutClientTest extends ClientTestCase
      */
     private static function rows(array $rows): MockResponse
     {
-        return self::answer(json_encode(['data' => $rows, 'meta' => ['query' => 'getThings', 'version' => 3, 'rows' => \count($rows), 'duration_ms' => 12]], JSON_THROW_ON_ERROR));
+        return self::answer(json_encode(['data' => $rows, 'meta' => ['query' => 'getThings', 'version' => 3, 'rows' => \count($rows), 'duration_ms' => 12]]));
     }
 
     public function testItSendsTheRequestWithTheTimeout(): void

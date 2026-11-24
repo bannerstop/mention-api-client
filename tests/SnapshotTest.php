@@ -16,6 +16,11 @@ final class SnapshotTest extends TestCase
 {
     private const NAMESPACE = 'Acme\\Mention';
 
+    public function testThePhp72OutputMatchesTheSnapshot(): void
+    {
+        $this->assertMatchesSnapshot(PhpTarget::php72(), __DIR__ . '/Snapshots/php72');
+    }
+
     public function testThePhp74OutputMatchesTheSnapshot(): void
     {
         $this->assertMatchesSnapshot(PhpTarget::php74(), __DIR__ . '/Snapshots/php74');
@@ -28,7 +33,7 @@ final class SnapshotTest extends TestCase
 
     public function testTheSnapshotsOfEveryTargetPassTheLintOfThisPhp(): void
     {
-        foreach (['php74' => 70400, 'php82' => 80200] as $directory => $minimum) {
+        foreach (['php72' => 70200, 'php74' => 70400, 'php82' => 80200] as $directory => $minimum) {
             if (\PHP_VERSION_ID < $minimum) {
                 continue;
             }

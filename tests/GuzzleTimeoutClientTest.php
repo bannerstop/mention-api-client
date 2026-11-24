@@ -18,7 +18,7 @@ use Psr\Http\Message\RequestInterface;
 final class GuzzleTimeoutClientTest extends ClientTestCase
 {
     /** @var list<array<string, mixed>> the options of every request that reached the Guzzle handler */
-    private array $options = [];
+    private $options = [];
 
     /**
      * A real Guzzle client whose handler answers with the given responses or exceptions and records the options.

@@ -15,9 +15,9 @@ final class Catalog
     private const OPERATION_PATH = '#^/v2/(queries|routines)/([A-Za-z][A-Za-z0-9]{0,127})$#';
 
     /** @var list<Operation> */
-    private array $queries;
+    private $queries;
     /** @var list<Operation> */
-    private array $routines;
+    private $routines;
 
     /**
      * @param list<Operation> $queries

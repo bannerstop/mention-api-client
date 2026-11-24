@@ -9,9 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 final class ConsoleTest extends TestCase
 {
-    private string $work;
-    private string $stdout = '';
-    private string $stderr = '';
+    /** @var string */
+    private $work;
+    /** @var string */
+    private $stdout = '';
+    /** @var string */
+    private $stderr = '';
 
     protected function setUp(): void
     {
@@ -81,6 +84,16 @@ final class ConsoleTest extends TestCase
         self::assertStringContainsString('14 files', $this->stdout);
     }
 
+    public function testGenerateWritesClassesWithoutTypedPropertiesForAnAppOnPhp72(): void
+    {
+        copy(__DIR__ . '/Fixtures/composer-php72.json', $this->work . '/composer.json');
+
+        $status = $this->cli(['generate', '--source=openapi.json', '--namespace=Acme\\Mention', '--dir=src/Mention']);
+
+        self::assertSame(0, $status, $this->stderr);
+        self::assertSame($this->filesIn(__DIR__ . '/Snapshots/php72'), $this->filesIn($this->work . '/src/Mention'));
+    }
+
     public function testGenerateWritesReadonlyClassesForAnAppOnPhp82(): void
     {
         copy(__DIR__ . '/Fixtures/composer-php82.json', $this->work . '/composer.json');
@@ -99,6 +112,14 @@ final class ConsoleTest extends TestCase
 
         self::assertSame(0, $status, $this->stderr);
         self::assertSame($this->filesIn(__DIR__ . '/Snapshots/php82'), $this->filesIn($this->work . '/out'));
+    }
+
+    public function testThePhpOptionAcceptsPhp72(): void
+    {
+        $status = $this->cli(['generate', '--source=openapi.json', '--namespace=Acme\\Mention', '--dir=out', '--php=7.2']);
+
+        self::assertSame(0, $status, $this->stderr);
+        self::assertSame($this->filesIn(__DIR__ . '/Snapshots/php72'), $this->filesIn($this->work . '/out'));
     }
 
     public function testOptionsMayBeGivenWithASpaceInsteadOfAnEqualsSign(): void
@@ -145,7 +166,7 @@ final class ConsoleTest extends TestCase
 
         self::assertSame(1, $status);
         self::assertStringContainsString('Queries.php', $this->stderr);
-        self::assertDirectoryDoesNotExist($this->work . '/src');
+        self::assertFalse(is_dir($this->work . '/src'));
     }
 
     public function testTheDocumentIsFetchedWithTheClientOfTheApp(): void
@@ -232,7 +253,7 @@ final class ConsoleTest extends TestCase
 
         self::assertSame(2, $status);
         self::assertStringContainsString('not an OpenAPI document', $this->stderr);
-        self::assertDirectoryDoesNotExist($this->work . '/out');
+        self::assertFalse(is_dir($this->work . '/out'));
     }
 
     public function testAnUnknownOptionAndAnUnknownCommandAreRefused(): void

@@ -5,34 +5,44 @@ declare(strict_types=1);
 namespace Bannerstop\MentionApi\Generator;
 
 /**
- * The PHP the generated code is written for: plain classes that run from PHP 7.4, or readonly classes from PHP 8.2.
+ * The PHP the generated code is written for: plain classes without typed properties that run from PHP 7.2, plain
+ * classes with typed properties from PHP 7.4, or readonly classes from PHP 8.2.
  *
  * @internal
  */
 final class PhpTarget
 {
-    private bool $readonly;
+    /** @var string */
+    private $version;
 
-    private function __construct(bool $readonly)
+    private function __construct(string $version)
     {
-        $this->readonly = $readonly;
+        $this->version = $version;
+    }
+
+    public static function php72(): self
+    {
+        return new self('7.2');
     }
 
     public static function php74(): self
     {
-        return new self(false);
+        return new self('7.4');
     }
 
     public static function php82(): self
     {
-        return new self(true);
+        return new self('8.2');
     }
 
     /**
-     * @param string $version "7.4" or "8.2"
+     * @param string $version "7.2", "7.4" or "8.2"
      */
     public static function fromString(string $version): self
     {
+        if ('7.2' === $version) {
+            return self::php72();
+        }
         if ('7.4' === $version) {
             return self::php74();
         }
@@ -40,12 +50,12 @@ final class PhpTarget
             return self::php82();
         }
 
-        throw new GeneratorException(sprintf('"%s" is not a PHP target; use 7.4 or 8.2.', $version));
+        throw new GeneratorException(sprintf('"%s" is not a PHP target; use 7.2, 7.4 or 8.2.', $version));
     }
 
     /**
-     * The target for an app that requires the given PHP in its composer.json: readonly classes only when even the
-     * lowest PHP the constraint allows is 8.2 or higher.
+     * The target for an app that requires the given PHP in its composer.json: no typed properties when the lowest PHP
+     * the constraint names is below 7.4, readonly classes only when even that is 8.2 or higher.
      *
      * @throws GeneratorException when the constraint cannot be read
      */
@@ -57,7 +67,14 @@ final class PhpTarget
             $lowest = null === $lowest ? $bound : min($lowest, $bound);
         }
 
-        return null !== $lowest && $lowest >= 802 ? self::php82() : self::php74();
+        if (null === $lowest || 0 === $lowest) { // no lower bound at all ("*"): nothing says the app is older than 7.4
+            return self::php74();
+        }
+        if ($lowest >= 802) {
+            return self::php82();
+        }
+
+        return $lowest < 704 ? self::php72() : self::php74();
     }
 
     /**
@@ -88,11 +105,24 @@ final class PhpTarget
 
     public function usesReadonlyClasses(): bool
     {
-        return $this->readonly;
+        return '8.2' === $this->version;
+    }
+
+    public function usesTypedProperties(): bool
+    {
+        return '7.2' !== $this->version;
+    }
+
+    /**
+     * A comma after the last argument of a call is a parse error before PHP 7.3.
+     */
+    public function allowsTrailingCommaInCalls(): bool
+    {
+        return '7.2' !== $this->version;
     }
 
     public function __toString(): string
     {
-        return $this->readonly ? '8.2' : '7.4';
+        return $this->version;
     }
 }

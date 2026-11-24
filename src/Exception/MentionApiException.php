@@ -9,7 +9,8 @@ namespace Bannerstop\MentionApi\Exception;
  */
 class MentionApiException extends \RuntimeException
 {
-    private ?string $requestId;
+    /** @var string|null */
+    private $requestId;
 
     public function __construct(string $message, ?string $requestId = null, int $code = 0, ?\Throwable $previous = null)
     {

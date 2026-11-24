@@ -9,13 +9,18 @@ namespace Bannerstop\MentionApi\Exception;
  */
 abstract class ProblemException extends MentionApiException
 {
-    private int $status;
-    private string $problemCode;
-    private string $title;
-    private string $detail;
+    /** @var int */
+    private $status;
+    /** @var string */
+    private $problemCode;
+    /** @var string */
+    private $title;
+    /** @var string */
+    private $detail;
     /** @var array<string, string> */
-    private array $errors;
-    private ?int $retryAfter;
+    private $errors;
+    /** @var int|null */
+    private $retryAfter;
 
     /**
      * @param array<string, string> $errors     what is wrong, per Parameter

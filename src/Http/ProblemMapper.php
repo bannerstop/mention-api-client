@@ -69,7 +69,7 @@ final class ProblemMapper
             isset($problem['detail']) && \is_string($problem['detail']) ? $problem['detail'] : '',
             $requestId,
             $errors,
-            $retryAfter,
+            $retryAfter
         );
     }
 }

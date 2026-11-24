@@ -62,7 +62,9 @@ final class ClientCredentialsTest extends ClientTestCase
         $client->run('getThings');
         $client->listQueries();
 
-        $tokenRequests = array_filter($this->http->requests, static fn ($request): bool => (string) $request->getUri() === self::TOKEN_URL);
+        $tokenRequests = array_filter($this->http->requests, static function ($request): bool {
+            return (string) $request->getUri() === self::TOKEN_URL;
+        });
         self::assertCount(1, $tokenRequests);
         self::assertCount(4, $this->http->requests);
     }

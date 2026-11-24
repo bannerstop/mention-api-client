@@ -15,7 +15,8 @@ final class OutputDirectory
 {
     private const OWNED_DIRECTORIES = ['Query', 'Routine'];
 
-    private string $directory;
+    /** @var string */
+    private $directory;
 
     public function __construct(string $directory)
     {

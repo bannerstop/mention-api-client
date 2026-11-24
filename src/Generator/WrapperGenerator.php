@@ -213,15 +213,16 @@ final class WrapperGenerator
     private function rowClass(string $namespace, string $class, Operation $operation, PhpTarget $target): string
     {
         $fields = [];
-        $arguments = '';
+        $arguments = [];
         foreach ($operation->getColumns() as $column) {
             $type = self::COLUMN_TYPES[$column->getType()] ?? null;
             $fields[] = new Field($column->getName(), null === $type ? '' : '?' . $type[0], null === $type ? 'mixed' : $type[0] . '|null', $column->getDescription());
             $access = "\$row['" . $column->getName() . "']";
-            $arguments .= '            ' . (null === $type ? $access . ' ?? null' : 'isset(' . $access . ') ? (' . $type[1] . ') ' . $access . ' : null') . ",\n";
+            $arguments[] = '            ' . (null === $type ? $access . ' ?? null' : 'isset(' . $access . ') ? (' . $type[1] . ') ' . $access . ' : null');
         }
         $method = "    /**\n     * Reads a row of the answer; a missing column is null and a column the Query does not declare is ignored.\n     *\n     * @param array<string, mixed> \$row\n     */\n    public static function fromArray(array \$row): self\n    {\n";
-        $method .= [] === $fields ? "        return new self();\n" : "        return new self(\n" . $arguments . "        );\n";
+        $separator = $target->allowsTrailingCommaInCalls() ? ",\n" : "\n";
+        $method .= [] === $fields ? "        return new self();\n" : "        return new self(\n" . implode(",\n", $arguments) . $separator . "        );\n";
         $method .= "    }\n";
 
         return $this->classCode($namespace, $class, 'A row of the Query "' . $operation->getName() . '".', $fields, $target, $method);
@@ -258,8 +259,8 @@ final class WrapperGenerator
             }
         } else {
             foreach ($fields as $field) {
-                $code .= $this->propertyDocblock($field);
-                $code .= '    public ' . ('' === $field->getDeclaredType() ? '' : $field->getDeclaredType() . ' ') . '$' . $field->getName() . ";\n\n";
+                $code .= $this->propertyDocblock($field, $target);
+                $code .= '    public ' . ('' === $field->getDeclaredType() || !$target->usesTypedProperties() ? '' : $field->getDeclaredType() . ' ') . '$' . $field->getName() . ";\n\n";
             }
             $code .= $constructorDoc;
             $code .= '    public function __construct(' . implode(', ', array_map(function (Field $field): string {
@@ -284,14 +285,17 @@ final class WrapperGenerator
         return ('' === $type ? '' : $type . ' ') . '$' . $field->getName() . ($field->isOptional() ? ' = null' : '');
     }
 
-    private function propertyDocblock(Field $field): string
+    /**
+     * Without typed properties (PHP 7.2) the docblock is the only place that says what the property holds.
+     */
+    private function propertyDocblock(Field $field, PhpTarget $target): string
     {
         $lines = [];
         if ('' !== $field->getDescription()) {
             $lines[] = $this->text($field->getDescription());
             $lines[] = '';
         }
-        if ($field->needsDocType()) {
+        if ($field->needsDocType() || !$target->usesTypedProperties()) {
             $lines[] = '@var ' . $field->getDocType();
         }
         $lines[] = '@readonly';

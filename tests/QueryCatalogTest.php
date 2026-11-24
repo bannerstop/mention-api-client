@@ -18,7 +18,7 @@ final class QueryCatalogTest extends ClientTestCase
                 ['name' => 'getOtherThings', 'version' => 1, 'description' => ''],
             ]],
             200,
-            ['X-Request-Id' => 'req_list'],
+            ['X-Request-Id' => 'req_list']
         ));
 
         $list = $this->client()->listQueries();
@@ -34,7 +34,7 @@ final class QueryCatalogTest extends ClientTestCase
                 ['name' => 'getThings', 'version' => 2, 'description' => 'All things'],
                 ['name' => 'getOtherThings', 'version' => 1, 'description' => ''],
             ],
-            $list->getQueries(),
+            $list->getQueries()
         );
         self::assertSame(['getThings', 'getOtherThings'], $list->getNames());
     }
@@ -53,7 +53,7 @@ final class QueryCatalogTest extends ClientTestCase
                 'row_limit' => 5000,
             ],
             200,
-            ['X-Request-Id' => 'req_describe'],
+            ['X-Request-Id' => 'req_describe']
         ));
 
         $query = $this->client()->describeQuery('getThings');

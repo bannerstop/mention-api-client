@@ -12,7 +12,7 @@ namespace Bannerstop\MentionApi\Result;
 final class QueryList extends Result implements \Countable, \IteratorAggregate
 {
     /** @var list<array<string, mixed>> */
-    private array $queries;
+    private $queries;
 
     /**
      * @param list<array<string, mixed>> $queries

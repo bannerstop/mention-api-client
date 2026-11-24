@@ -23,17 +23,28 @@ final class ClientCredentialsAuthenticator implements Authenticator
     /** Seconds before the expiry at which a token is no longer used. */
     private const MARGIN = 30;
 
-    private string $tokenUrl;
-    private string $clientId;
-    private string $clientSecret;
-    private string $scope;
-    private ClientInterface $http;
-    private RequestFactoryInterface $requestFactory;
-    private StreamFactoryInterface $streamFactory;
-    private ?CacheInterface $cache;
-    private ClockInterface $clock;
-    private ?string $token = null;
-    private int $tokenExpiresAt = 0;
+    /** @var string */
+    private $tokenUrl;
+    /** @var string */
+    private $clientId;
+    /** @var string */
+    private $clientSecret;
+    /** @var string */
+    private $scope;
+    /** @var ClientInterface */
+    private $http;
+    /** @var RequestFactoryInterface */
+    private $requestFactory;
+    /** @var StreamFactoryInterface */
+    private $streamFactory;
+    /** @var CacheInterface|null */
+    private $cache;
+    /** @var ClockInterface */
+    private $clock;
+    /** @var string|null */
+    private $token = null;
+    /** @var int */
+    private $tokenExpiresAt = 0;
 
     public function __construct(
         string $tokenUrl,
@@ -77,6 +88,7 @@ final class ClientCredentialsAuthenticator implements Authenticator
             $this->token = null;
         }
         if (null !== $this->cache) {
+            /** @var mixed $entry (psr/simple-cache 3 declares mixed; PHPStan reads it as a class when analysing for PHP 7.2) */
             $entry = $this->cache->get($this->cacheKey());
             // Another process may have stored a newer token in the meantime: keep that one.
             if (\is_array($entry) && isset($entry['access_token']) && \is_string($entry['access_token']) && self::bearer($entry['access_token']) === $authorizationHeader) {
@@ -102,6 +114,7 @@ final class ClientCredentialsAuthenticator implements Authenticator
         if (null === $this->cache) {
             return;
         }
+        /** @var mixed $entry (psr/simple-cache 3 declares mixed; PHPStan reads it as a class when analysing for PHP 7.2) */
         $entry = $this->cache->get($this->cacheKey());
         if (\is_array($entry) && isset($entry['access_token'], $entry['expires_at']) && \is_string($entry['access_token']) && \is_int($entry['expires_at']) && $entry['expires_at'] > $now) {
             $this->token = $entry['access_token'];
@@ -141,7 +154,7 @@ final class ClientCredentialsAuthenticator implements Authenticator
         $this->token = $document['access_token'];
         $this->tokenExpiresAt = $now + $lifetime;
         if (null !== $this->cache) {
-            $this->cache->set($this->cacheKey(), ['access_token' => $this->token, 'expires_at' => $this->tokenExpiresAt], $lifetime);
+            $this->cache->set($this->cacheKey(), ['access_token' => $this->token, 'expires_at' => $this->tokenExpiresAt], $lifetime); // @phpstan-ignore argument.type
         }
     }
 

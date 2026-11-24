@@ -23,6 +23,17 @@ final class RunQueryTest extends ClientTestCase
         self::assertSame([['id' => 7, 'total' => '12.50']], $result->getRows());
     }
 
+    public function testParametersThatCannotBeEncodedAsJsonAreRefusedBeforeAnythingIsSent(): void
+    {
+        try {
+            $this->client()->run('getThings', ['name' => "\xB1\x31"]);
+            self::fail('Expected an exception.');
+        } catch (\Exception $e) {
+            self::assertStringContainsString('UTF-8', $e->getMessage());
+            self::assertSame([], $this->http->requests);
+        }
+    }
+
     public function testTheApiKeyIsSentAsBearerToken(): void
     {
         $this->http->enqueue(Answers::rows([]));

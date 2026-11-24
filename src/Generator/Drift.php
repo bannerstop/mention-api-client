@@ -12,11 +12,11 @@ namespace Bannerstop\MentionApi\Generator;
 final class Drift
 {
     /** @var list<string> */
-    private array $missing;
+    private $missing;
     /** @var list<string> */
-    private array $changed;
+    private $changed;
     /** @var list<string> */
-    private array $stale;
+    private $stale;
 
     /**
      * @param list<string> $missing files the generator would write that do not exist

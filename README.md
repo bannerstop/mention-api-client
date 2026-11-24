@@ -26,14 +26,19 @@ Integrations on top of this package:
 
 ## Versions
 
-There is one major version for every supported PHP version, 7.4 to 8.5. A new
-major version is released only when the minimum PHP version rises or a
-dependency range cannot be held any longer; everything else, including new
-features, ships in a minor version. The integration packages require `^1.0`.
+One code base supports every PHP version from 7.2.5 to 8.5. A new major
+version is released only when the minimum PHP version rises or a dependency
+range cannot be held any longer; everything else, including new features, ships
+in a minor version. The integration packages require `^1.0`.
 
-| Version | PHP        |
-|---------|------------|
-| 1.x     | 7.4 - 8.5+ |
+| Version | PHP          |
+|---------|--------------|
+| 1.1+    | 7.2.5 - 8.5+ |
+| 1.0     | 7.4 - 8.5+   |
+
+PHP 7.2 and 7.3 are end of life; they are supported so that apps can still
+migrate from there. The library itself uses no typed properties, so nothing
+changes for apps on 7.4 or later.
 
 The package follows [Semantic Versioning](https://semver.org/). Classes and
 methods marked `@internal` are not part of the public API.
@@ -351,10 +356,25 @@ your credentials:
 
 The generator reads the PHP version of your app from `require.php` in your
 `composer.json` (`--composer=<file>` for another one). When even the lowest PHP
-your constraint allows is 8.2 or higher, the classes are `readonly`; otherwise
-they are plain classes with typed properties that run on PHP 7.4 and later.
-Both give you the same properties and methods; only the `readonly` ones are enforced by PHP itself. `--php=7.4` or `--php=8.2`
-overrides the choice. The generator itself runs on PHP 7.4 to 8.5.
+your constraint allows is 8.2 or higher, the classes are `readonly`; when it is
+below 7.4 (for example `^7.2.5 || ^8.0`), they are plain classes without typed
+properties that run on PHP 7.2 and later; otherwise they are plain classes with
+typed properties that run on PHP 7.4 and later.
+
+| Target | Lowest PHP of your constraint | Classes                                                 |
+|--------|-------------------------------|---------------------------------------------------------|
+| `7.2`  | below 7.4                     | properties typed by their `@var` docblock only          |
+| `7.4`  | 7.4 to 8.1, or no lower bound | properties with type declarations                       |
+| `8.2`  | 8.2 or higher                 | `readonly` classes with promoted constructor properties |
+
+A constraint without any lower bound (`*`, `<8`) counts as 7.4, as in 1.0; pass
+`--php=7.2` if such an app runs on older PHP.
+
+All three give you the same properties and methods; only the `readonly` ones are
+enforced by PHP itself, and on the `7.2` target PHP does not check the type of a
+property you assign to (the constructor and method signatures stay typed).
+`--php=7.2`, `--php=7.4` or `--php=8.2` overrides the choice. The generator itself
+runs on PHP 7.2 to 8.5.
 
 ### Keep the classes current
 
@@ -477,8 +497,12 @@ generator is tested against a sample OpenAPI document (`tests/Fixtures/openapi.j
 with snapshots of the generated code per PHP target in `tests/Snapshots`; after
 changing the generator, regenerate them with `UPDATE_SNAPSHOTS=1 vendor/bin/phpunit`
 and review the diff. CI runs them
-on every PHP version from 7.4 to 8.5, with the highest and the lowest allowed
-dependencies.
+on every PHP version from 7.2 to 8.5, with the highest and the lowest allowed
+dependencies. The tests must stay compatible with PHPUnit 8.5 (PHP 7.2) up to
+PHPUnit 12, and the code must not use syntax or functions newer than PHP 7.2
+(no typed properties, no arrow functions, no trailing comma after the last
+argument of a call). PHPStan analyses it as PHP 7.2.5 to 8.5, but only the test
+matrix catches typed properties and trailing commas.
 
 ## Security
 

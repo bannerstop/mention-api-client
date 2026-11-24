@@ -28,13 +28,20 @@ final class Transport
     public const MAX_RETRIES = 2;
     public const MAX_RETRY_WAIT = 10;
 
-    private MentionApiConfig $config;
-    private ClientInterface $http;
-    private RequestFactoryInterface $requestFactory;
-    private StreamFactoryInterface $streamFactory;
-    private Authenticator $authenticator;
-    private ClockInterface $clock;
-    private Sleeper $sleeper;
+    /** @var MentionApiConfig */
+    private $config;
+    /** @var ClientInterface */
+    private $http;
+    /** @var RequestFactoryInterface */
+    private $requestFactory;
+    /** @var StreamFactoryInterface */
+    private $streamFactory;
+    /** @var Authenticator */
+    private $authenticator;
+    /** @var ClockInterface */
+    private $clock;
+    /** @var Sleeper */
+    private $sleeper;
 
     public function __construct(
         MentionApiConfig $config,
@@ -110,10 +117,28 @@ final class Transport
         if (null !== $body) {
             $request = $request
                 ->withHeader('Content-Type', 'application/json')
-                ->withBody($this->streamFactory->createStream(json_encode($body, JSON_THROW_ON_ERROR)));
+                ->withBody($this->streamFactory->createStream($this->encode($body)));
         }
 
         return $request;
+    }
+
+    /**
+     * Fails with a JsonException when the body cannot be encoded; PHP 7.2 has no such class and throws a RuntimeException.
+     *
+     * @param array<string, mixed> $body
+     */
+    private function encode(array $body): string
+    {
+        $json = json_encode($body);
+        if (false === $json) {
+            $message = json_last_error_msg();
+
+            // JsonException is PHP 7.3 and later, so static analysis for PHP 7.2 does not know the class.
+            throw class_exists(\JsonException::class) ? new \JsonException($message, json_last_error()) : new \RuntimeException($message, json_last_error()); // @phpstan-ignore class.notFound
+        }
+
+        return $json;
     }
 
     /**

@@ -18,8 +18,10 @@ use Psr\Http\Message\ResponseInterface;
  */
 final class GuzzleTimeoutClient implements ClientInterface, TimeoutAware
 {
-    private GuzzleClient $client;
-    private ?float $timeout;
+    /** @var GuzzleClient */
+    private $client;
+    /** @var float|null */
+    private $timeout;
 
     public function __construct(GuzzleClient $client, ?float $timeout = null)
     {

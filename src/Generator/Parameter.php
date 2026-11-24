@@ -11,9 +11,12 @@ namespace Bannerstop\MentionApi\Generator;
  */
 final class Parameter
 {
-    private string $name;
-    private string $type;
-    private bool $required;
+    /** @var string */
+    private $name;
+    /** @var string */
+    private $type;
+    /** @var bool */
+    private $required;
 
     public function __construct(string $name, string $type, bool $required)
     {

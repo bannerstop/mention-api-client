@@ -11,12 +11,14 @@ namespace Bannerstop\MentionApi\Generator;
  */
 final class Operation
 {
-    private string $name;
-    private string $summary;
+    /** @var string */
+    private $name;
+    /** @var string */
+    private $summary;
     /** @var list<Parameter> */
-    private array $parameters;
+    private $parameters;
     /** @var list<Column> */
-    private array $columns;
+    private $columns;
 
     /**
      * @param list<Parameter> $parameters

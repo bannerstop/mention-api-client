@@ -59,7 +59,7 @@ final class WrapperGeneratorTest extends TestCase
     {
         foreach ($this->generate(GeneratedCode::fixtureDocument(), '\\App\\Mention\\') as $path => $code) {
             self::assertStringContainsString('// ' . WrapperGenerator::MARKER, $code, $path);
-            self::assertMatchesRegularExpression('/^namespace App\\\\Mention(\\\\Query|\\\\Routine)?;$/m', $code, $path);
+            self::assertSame(1, preg_match('/^namespace App\\\\Mention(\\\\Query|\\\\Routine)?;$/m', $code), $path);
         }
     }
 

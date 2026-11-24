@@ -11,11 +11,16 @@ namespace Bannerstop\MentionApi\Generator;
  */
 final class Field
 {
-    private string $name;
-    private string $declaredType;
-    private string $docType;
-    private string $description;
-    private bool $optional;
+    /** @var string */
+    private $name;
+    /** @var string */
+    private $declaredType;
+    /** @var string */
+    private $docType;
+    /** @var string */
+    private $description;
+    /** @var bool */
+    private $optional;
 
     /**
      * @param string $declaredType the PHP type declaration, empty for none

@@ -11,9 +11,12 @@ namespace Bannerstop\MentionApi\Generator;
  */
 final class Column
 {
-    private string $name;
-    private string $type;
-    private string $description;
+    /** @var string */
+    private $name;
+    /** @var string */
+    private $type;
+    /** @var string */
+    private $description;
 
     public function __construct(string $name, string $type, string $description)
     {
