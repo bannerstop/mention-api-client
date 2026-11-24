@@ -361,11 +361,14 @@ below 7.4 (for example `^7.2.5 || ^8.0`), they are plain classes without typed
 properties that run on PHP 7.2 and later; otherwise they are plain classes with
 typed properties that run on PHP 7.4 and later.
 
-| Target | Lowest PHP of your constraint | Classes                                              |
-|--------|-------------------------------|------------------------------------------------------|
-| `7.2`  | below 7.4                     | properties typed by their `@var` docblock only       |
-| `7.4`  | 7.4 to 8.1                    | properties with type declarations                    |
+| Target | Lowest PHP of your constraint | Classes                                                 |
+|--------|-------------------------------|---------------------------------------------------------|
+| `7.2`  | below 7.4                     | properties typed by their `@var` docblock only          |
+| `7.4`  | 7.4 to 8.1, or no lower bound | properties with type declarations                       |
 | `8.2`  | 8.2 or higher                 | `readonly` classes with promoted constructor properties |
+
+A constraint without any lower bound (`*`, `<8`) counts as 7.4, as in 1.0; pass
+`--php=7.2` if such an app runs on older PHP.
 
 All three give you the same properties and methods; only the `readonly` ones are
 enforced by PHP itself, and on the `7.2` target PHP does not check the type of a
@@ -496,8 +499,10 @@ changing the generator, regenerate them with `UPDATE_SNAPSHOTS=1 vendor/bin/phpu
 and review the diff. CI runs them
 on every PHP version from 7.2 to 8.5, with the highest and the lowest allowed
 dependencies. The tests must stay compatible with PHPUnit 8.5 (PHP 7.2) up to
-PHPUnit 12, and the code must not use syntax or functions newer than PHP 7.2;
-PHPStan analyses it as PHP 7.2.5 to 8.5.
+PHPUnit 12, and the code must not use syntax or functions newer than PHP 7.2
+(no typed properties, no arrow functions, no trailing comma after the last
+argument of a call). PHPStan analyses it as PHP 7.2.5 to 8.5, but only the test
+matrix catches typed properties and trailing commas.
 
 ## Security
 

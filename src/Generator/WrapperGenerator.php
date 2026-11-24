@@ -213,18 +213,16 @@ final class WrapperGenerator
     private function rowClass(string $namespace, string $class, Operation $operation, PhpTarget $target): string
     {
         $fields = [];
-        $arguments = '';
+        $arguments = [];
         foreach ($operation->getColumns() as $column) {
             $type = self::COLUMN_TYPES[$column->getType()] ?? null;
             $fields[] = new Field($column->getName(), null === $type ? '' : '?' . $type[0], null === $type ? 'mixed' : $type[0] . '|null', $column->getDescription());
             $access = "\$row['" . $column->getName() . "']";
-            $arguments .= '            ' . (null === $type ? $access . ' ?? null' : 'isset(' . $access . ') ? (' . $type[1] . ') ' . $access . ' : null') . ",\n";
+            $arguments[] = '            ' . (null === $type ? $access . ' ?? null' : 'isset(' . $access . ') ? (' . $type[1] . ') ' . $access . ' : null');
         }
         $method = "    /**\n     * Reads a row of the answer; a missing column is null and a column the Query does not declare is ignored.\n     *\n     * @param array<string, mixed> \$row\n     */\n    public static function fromArray(array \$row): self\n    {\n";
-        if (!$target->allowsTrailingCommaInCalls()) {
-            $arguments = rtrim($arguments, ",\n") . "\n";
-        }
-        $method .= [] === $fields ? "        return new self();\n" : "        return new self(\n" . $arguments . "        );\n";
+        $separator = $target->allowsTrailingCommaInCalls() ? ",\n" : "\n";
+        $method .= [] === $fields ? "        return new self();\n" : "        return new self(\n" . implode(",\n", $arguments) . $separator . "        );\n";
         $method .= "    }\n";
 
         return $this->classCode($namespace, $class, 'A row of the Query "' . $operation->getName() . '".', $fields, $target, $method);

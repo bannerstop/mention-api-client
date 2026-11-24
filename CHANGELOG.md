@@ -17,7 +17,7 @@ All notable changes to this package are documented here. The format follows
 ### Changed
 
 - `require.php` is `^7.2.5 || ^8.0`. The generator itself runs on PHP 7.2 to 8.5.
-- A `composer.json` that requires a lowest PHP below 7.4 (for example `>=7.1`) now gets the `7.2` target instead of `7.4`.
+- A `composer.json` that requires a lowest PHP below 7.4 (for example `>=7.1`) now gets the `7.2` target instead of `7.4`; run the generator once more, `--check` reports the difference.
 - The tests run on PHP 7.2 and 7.3 as well, with PHPUnit 8.5 up to 12.
 
 ## [1.0.0] - 2026-11-18
